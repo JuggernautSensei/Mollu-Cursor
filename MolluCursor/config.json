@@ -1,0 +1,16 @@
+{
+    "font_scale": 1.0,
+    "global_macro_enabled": true,
+    "global_macro_option_hotkey": 116,
+    "macro_visualize_color": [
+        0.0,
+        0.0,
+        0.0,
+        0.699999988079071
+    ],
+    "macro_visualize_enabled": true,
+    "macro_visualize_option_hotkey": 118,
+    "macro_visualize_scale": 1.0,
+    "top_most": false,
+    "top_most_option_hotkey": 117
+}

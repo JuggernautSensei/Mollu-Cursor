@@ -1,0 +1,8 @@
+*.pdb
+*.obj
+Inter/
+Binaries/
+MolluCursor/x64
+MolluCursor/x86
+MolluCursor/.vs
+.vs/
