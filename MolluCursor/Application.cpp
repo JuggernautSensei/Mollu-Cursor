@@ -217,10 +217,10 @@ void Application::Initialize_(const HINSTANCE _hInst, [[maybe_unused]] int _nCmd
 
     // 설정파일 로딩
     {
-        Json configJson;
-        if (std::filesystem::exists(k_configFilePath) && LoadJson(k_configFilePath, configJson))
+        std::optional<Json> configJsonOpt = LoadJson(k_configFilePath);
+        if (configJsonOpt)
         {
-            m_config.Deserialize(configJson);
+            m_config.Deserialize(configJsonOpt.value());
         }
     }
 
@@ -509,7 +509,7 @@ void Application::ShowWorkSpaceWindow_()
 
             ImGui::Text("윈도우 좌상단 위치: (%d, %d)", m_gameDetectorData.windowPosX, m_gameDetectorData.windowPosY);
             ImGui::Text("윈도우 해상도: (%d, %d)", m_gameDetectorData.windowWidth, m_gameDetectorData.windowHeight);
-            ImGui::Text("종횡비: %s", m_gameDetectorData.aspectRatio == eAspectRatio::Ratio_16_9 ? "16:9" : "4:3");
+            ImGui::Text("종횡비: %s", m_gameDetectorData.bWideAspectRatio ? "16:9" : "4:3");
         }
         else
         {
@@ -596,7 +596,7 @@ void Application::ShowWorkSpaceWindow_()
                 MacroVisualize,
                 Count,
             };
-            constexpr int k_eOptionCount = ToUnderlying(eOption::Count);
+            constexpr int k_eOptionCount = static_cast<int>(eOption::Count);
 
             constexpr const char* const k_label[k_eOptionCount][2] = {
                 { "모든 매크로가 활성화 됨", "모든 매크로가 비활성화 됨" },
@@ -621,7 +621,7 @@ void Application::ShowWorkSpaceWindow_()
                 ImGui::TableNextRow();
                 ImGui::PushID(i);
 
-                eOption            option  = ToEnum<eOption>(i);
+                eOption            option  = static_cast<eOption>(i);
                 eKey*              pHotkey = hotKeys[i];
                 bool*              pEnable = pEnables[i];
                 const char* const* labels  = k_label[i];
@@ -1076,7 +1076,8 @@ void Application::ShowMacroVisualizeWindow_() const
     for (const Macro& macro: m_macroStack)
     {
         // 만약 이동이 활성화되어 있지 않은 매크로는 시각화를 스킵
-        if (!macro.bMove)
+        // 또한 활성화 되어있지 않은 매크로도 스킵
+        if (!macro.bMove || !macro.bEnable)
             continue;
 
         // 로컬 좌표 -> 전역 좌표
@@ -1134,7 +1135,7 @@ void Application::UpdateMacros_()
         // 매크로 트리거 조건 평가
         bool bInput   = (macro.action == eMacroAction::ClickRepeat) ? Input::IsKeyDown(macro.hotkey) : Input::IsKeyPressed(macro.hotkey);
         bool bRelease = (macro.action == eMacroAction::Hold) && Input::IsKeyReleased(macro.hotkey);
-        bool bTime    = (macro.action != eMacroAction::ClickRepeat) || (macro.timeCounterSec >= macro.repeatIntervalSec); // Repeat 모드가 아니면 항상 true
+        bool bTime    = (macro.action != eMacroAction::ClickRepeat) || (macro.timeCounterSec >= macro.repeatIntervalSec);   // Repeat 모드가 아니면 항상 true
 
         // 만약 시간 조건을 만족했을시 카운터 초기화
         if (bTime)
@@ -1190,7 +1191,6 @@ void Application::UpdateMacros_()
             // 이벤트 전송
             SendInput(eventCount, inputs + startIndex, sizeof(INPUT));
         }
-
     }
 }
 
@@ -1241,40 +1241,40 @@ Json Application::SerializeMacroStack_(const std::vector<Macro>& _macroStack) co
     return json;
 }
 
-bool Application::DeserializeMacroStack_(std::vector<Macro>& _out_macroStack, const Json& _json) const
+std::optional<std::vector<Macro>> Application::DeserializeMacroStack_(const Json& _json) const
 {
     if (!_json.is_array())
     {
-        return false;
+        return std::nullopt;
     }
 
-    std::vector<Macro> tmp;
-    tmp.reserve(_json.size());
+    std::vector<Macro> macros;
+    macros.reserve(_json.size());
 
     for (const Json& item: _json)
     {
         Macro macro;
         if (!macro.Deserialize(item))
         {
-            return false;
+            return std::nullopt;
         }
 
-        tmp.emplace_back(macro);
+        macros.emplace_back(macro);
     }
 
-    _out_macroStack = std::move(tmp);
-    return true;
+    return macros;
 }
 
 void Application::SaveMacroStackByFileDialog_()
 {
-    std::filesystem::path path;
-    if (ShowFileDialog_(path, k_fileDialogFilter, GetSaveFileName))
+    std::optional<std::filesystem::path> path = ShowFileDialog_(k_fileDialogFilter, GetSaveFileName);
+    if (path)
     {
-        path.replace_extension(k_macroFileExtension);
+        std::filesystem::path& pathRef = path.value();
+        pathRef.replace_extension(k_macroFileExtension);
 
         Json json = SerializeMacroStack_(m_macroStack);
-        if (SaveJson(path, json))
+        if (SaveJson(pathRef, json))
         {
             MessageBoxPopup popup { "매크로 저장 성공" };
             OpenModalWindow_(popup);
@@ -1289,20 +1289,22 @@ void Application::SaveMacroStackByFileDialog_()
 
 void Application::LoadMacroStackByFileDialog_()
 {
-    std::filesystem::path path;
-    if (ShowFileDialog_(path, k_fileDialogFilter, GetOpenFileName))
+    std::optional<std::filesystem::path> path = ShowFileDialog_(k_fileDialogFilter, GetOpenFileName);
+    if (path)
     {
-        if (path.extension() != k_macroFileExtension)
+        std::filesystem::path& pathRef = path.value();
+
+        if (pathRef.extension() != k_macroFileExtension)
         {
             MessageBoxPopup popup { "불러올 수 없는 파일" };
             OpenModalWindow_(popup);
             return;
         }
 
-        Json json;
-        if (LoadJson(path, json))
+        std::optional<Json> jsonOpt = LoadJson(pathRef);
+        if (jsonOpt)
         {
-            if (DeserializeMacroStack_(m_macroStack, json))
+            if (DeserializeMacroStack_(jsonOpt.value()))
             {
                 MessageBoxPopup popup { "매크로 불러오기 성공" };
                 OpenModalWindow_(popup);
@@ -1315,7 +1317,7 @@ void Application::LoadMacroStackByFileDialog_()
     OpenModalWindow_(popup);
 }
 
-bool Application::ShowFileDialog_(std::filesystem::path& _out_selectedPath, const wchar_t* const _pFilter, BOOL (*_showDialogCallback)(LPOPENFILENAMEW)) const
+std::optional<std::filesystem::path> Application::ShowFileDialog_(const wchar_t* const _pFilter, BOOL(WINAPI* _showDialogCallback)(LPOPENFILENAMEW)) const
 {
     OPENFILENAME ofn;
     wchar_t      szFile[260] = {};
@@ -1331,13 +1333,11 @@ bool Application::ShowFileDialog_(std::filesystem::path& _out_selectedPath, cons
 
     if (_showDialogCallback(&ofn))
     {
-        _out_selectedPath = szFile;
-        return true;
+        return std::filesystem::path(ofn.lpstrFile);
     }
     else
     {
-        _out_selectedPath.clear();
-        return false;
+        return std::nullopt;
     }
 }
 
@@ -1378,72 +1378,4 @@ LRESULT Application::WndProc_(const HWND hWnd, const UINT message, const WPARAM 
     }
 
     return true;
-}
-
-// 이하 Config 구조체 코드
-bool Application::Config::Deserialize(const Json& _json)
-{
-    if (!_json.is_object())
-    {
-        ASSERT(0, "Config::Deserialize: Invalid JSON format.");
-        return false;
-    }
-
-    // for use default value
-    Config defaultConfig;
-
-    // deserialize config
-    bGlobalMacro        = _json.value("global_macro_enabled", defaultConfig.bGlobalMacro);
-    bTopMost            = _json.value("top_most", defaultConfig.bTopMost);
-    fontScale           = _json.value("font_scale", defaultConfig.fontScale);
-    bMacroVisualize     = _json.value("macro_visualize_enabled", defaultConfig.bMacroVisualize);
-    macroVisualizeScale = _json.value("macro_visualize_scale", defaultConfig.macroVisualizeScale);
-
-    // hotkey
-    globalMacroHotkey    = _json.value("global_macro_option_hotkey", defaultConfig.globalMacroHotkey);
-    topMostHotkey        = _json.value("top_most_option_hotkey", defaultConfig.topMostHotkey);
-    macroVisualizeHotkey = _json.value("macro_visualize_option_hotkey", defaultConfig.macroVisualizeHotkey);
-
-    // 색상
-    const Json& colorJson = _json["macro_visualize_color"];
-    if (colorJson.is_array() && colorJson.size() == 4)
-    {
-        macroVisualizeColor.x = colorJson[0].get<float>();
-        macroVisualizeColor.y = colorJson[1].get<float>();
-        macroVisualizeColor.z = colorJson[2].get<float>();
-        macroVisualizeColor.w = colorJson[3].get<float>();
-    }
-    else
-    {
-        // default value
-        macroVisualizeColor = defaultConfig.macroVisualizeColor;
-    }
-
-    return true;
-}
-
-Json Application::Config::Serialize() const
-{
-    ImGuiIO& io = ImGui::GetIO();
-    Json     json;
-
-    // serialize config
-    json["global_macro_enabled"]    = bGlobalMacro;
-    json["top_most"]                = bTopMost;
-    json["font_scale"]              = io.FontGlobalScale;
-    json["macro_visualize_enabled"] = bMacroVisualize;
-    json["macro_visualize_scale"]   = macroVisualizeScale;
-    json["macro_visualize_color"]   = { macroVisualizeColor.x, macroVisualizeColor.y, macroVisualizeColor.z, macroVisualizeColor.w };
-
-    // hotkey
-    json["global_macro_option_hotkey"]    = globalMacroHotkey;
-    json["top_most_option_hotkey"]        = topMostHotkey;
-    json["macro_visualize_option_hotkey"] = macroVisualizeHotkey;
-
-    return json;
-}
-
-void Application::Config::Clear()
-{
-    *this = Config {};
 }

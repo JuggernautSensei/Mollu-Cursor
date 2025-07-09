@@ -74,13 +74,14 @@ private:
 
     // serialize macros
     NODISCARD Json SerializeMacroStack_(const std::vector<Macro>& _macroStack) const;
-    bool           DeserializeMacroStack_(std::vector<Macro>& _out_macroStack, const Json& _json) const;
-    void           SaveMacroStackByFileDialog_();   // using file dialog
-    void           LoadMacroStackByFileDialog_();   // using file dialog
+    NODISCARD std::optional<std::vector<Macro>> DeserializeMacroStack_(const Json& _json) const;
+
+    void SaveMacroStackByFileDialog_();   // using file dialog
+    void LoadMacroStackByFileDialog_();   // using file dialog
 
     // utilities
     NODISCARD std::string GetSystemErrorString_(HRESULT _hr) const;
-    bool                  ShowFileDialog_(std::filesystem::path& _out_selectedPath, const wchar_t* _pFilter, BOOL (*_showDialogCallback)(LPOPENFILENAMEW)) const;
+    NODISCARD std::optional<std::filesystem::path> ShowFileDialog_(const wchar_t* _pFilter, BOOL (*_showDialogCallback)(LPOPENFILENAMEW)) const;
 
     // etc.
     void OpenModalWindow_(const std::function<void()>& _guiRenderFn);
@@ -159,8 +160,8 @@ private:
     constexpr static const char* const k_fontDirectory          = "fonts\\";
     constexpr static const char* const k_fontFileName           = "NanumSquareRoundR.ttf";
     constexpr static const char* const k_boldFontFileName       = "NanumSquareRoundEB.ttf";
-    constexpr static int               k_defaultFontSize        = 18.f;
-    constexpr static int               k_macroVisualizeFontSize = 20.f;
+    constexpr static float             k_defaultFontSize        = 18.f;
+    constexpr static float             k_macroVisualizeFontSize = 20.f;
 
     // file dialog
     constexpr static wchar_t k_fileDialogFilter[] = L"macro file (*.json)\0*.json\0all files (*.*)\0*.*\0";

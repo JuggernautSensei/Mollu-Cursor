@@ -4,17 +4,15 @@
 
 #include <fstream>
 
-bool LoadJson(const std::filesystem::path& _path, Json& _out_json) 
+std::optional<Json> LoadJson(const std::filesystem::path& _path) 
 {
     std::fstream fs(_path, std::ios::in);
     if (!fs.is_open())
     {
-        ASSERT(0, "open fail: {}", _path.string());
-        return false;
+        return std::nullopt;
     }
 
-    _out_json = Json::parse(fs, nullptr, false);
-    return true;
+    return Json::parse(fs, nullptr, false);
 }
 
 bool SaveJson(const std::filesystem::path& _path, const Json& _json) 
@@ -22,7 +20,6 @@ bool SaveJson(const std::filesystem::path& _path, const Json& _json)
     std::fstream fs(_path, std::ios::out);
     if (!fs.is_open())
     {
-        ASSERT(0, "open fail: {}", _path.string());
         return false;
     }
 

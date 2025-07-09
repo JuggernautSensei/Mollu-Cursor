@@ -33,31 +33,32 @@ void Input::Update()
     // update input
     for (size_t i = 0; i < std::size(g_inputState.keyDownStates); ++i)
     {
+        int vKey                          = static_cast<int>(i);
         g_inputState.prevKeyDownStates[i] = g_inputState.keyDownStates[i];
-        g_inputState.keyDownStates[i]     = GetAsyncKeyState(i) & 0x8000;
+        g_inputState.keyDownStates[i]     = GetAsyncKeyState(vKey) & 0x8000;
     }
 }
 
 bool Input::IsKeyDown(const eKey _key)
 {
-    return detail::g_inputState.keyDownStates[ToUnderlying(_key)];
+    return detail::g_inputState.keyDownStates[static_cast<int>(_key)];
 }
 
 bool Input::IsKeyUp(const eKey _key)
 {
-    return !detail::g_inputState.keyDownStates[ToUnderlying(_key)];
+    return !detail::g_inputState.keyDownStates[static_cast<int>(_key)];
 }
 
 bool Input::IsKeyPressed(const eKey _key)
 {
     detail::InputState& state = detail::g_inputState;
-    size_t              idx   = ToUnderlying(_key);
+    int                 idx   = static_cast<int>(_key);
     return !state.prevKeyDownStates[idx] && state.keyDownStates[idx];
 }
 
 bool Input::IsKeyReleased(const eKey _key)
 {
     detail::InputState& state = detail::g_inputState;
-    size_t              idx   = ToUnderlying(_key);
+    int                 idx   = static_cast<int>(_key);
     return state.prevKeyDownStates[idx] && !state.keyDownStates[idx];
 }

@@ -2,6 +2,8 @@
 
 #include "GameDetector.h"
 
+#include "Utilities.h"
+
 namespace detail
 {
 
@@ -52,9 +54,9 @@ void GameDetector::Initialize(const std::wstring_view _targetProgramName, const 
     m_detectedPrograms.clear();
 
     m_targetProgramName = _targetProgramName;
-    m_scanIntervalSec     = _scanIntervalSec;
+    m_scanIntervalSec   = _scanIntervalSec;
     m_handler           = _handler;
-    m_timeCounterSec   = m_scanIntervalSec;   // 바로 스캔하기 위해서 큰 값으로 초기화
+    m_timeCounterSec    = m_scanIntervalSec;   // 바로 스캔하기 위해서 큰 값으로 초기화
     m_bRunning          = true;
     m_bInitialize       = true;
 }
@@ -120,8 +122,7 @@ void GameDetector::Run()
                     constexpr float k_aspectRatio_4_3  = 4.f / 3.f;
 
                     float aspectRatio      = static_cast<float>(detectData.windowWidth) / static_cast<float>(detectData.windowHeight);
-                    bool  b16_9            = std::abs(aspectRatio - k_aspectRatio_16_9) < std::abs(aspectRatio - k_aspectRatio_4_3);
-                    detectData.aspectRatio = b16_9 ? eAspectRatio::Ratio_16_9 : eAspectRatio::Ratio_4_3;
+                    detectData.bWideAspectRatio = std::abs(aspectRatio - k_aspectRatio_16_9) < std::abs(aspectRatio - k_aspectRatio_4_3);
                 }
             }
 
@@ -149,7 +150,7 @@ void GameDetector::ChangeTargetProgramName(const std::wstring_view _name)
         [this, name = std::wstring { _name }]() mutable
         {
             m_targetProgramName = std::move(name);
-            m_scanIntervalSec     = m_timeCounterSec;   // 즉시 스캔
+            m_scanIntervalSec   = m_timeCounterSec;   // 즉시 스캔
         });
 }
 

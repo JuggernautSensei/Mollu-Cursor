@@ -7,9 +7,9 @@
 #include "Input.h"
 #include "Utilities.h"
 
-EditStringPopup::EditStringPopup(std::string& _rString)
-    : m_pEditString(&_rString)
-    , m_tmpString(_rString)
+EditStringPopup::EditStringPopup(std::string& _stringRef)
+    : m_pEditString(&_stringRef)
+    , m_tmpString(_stringRef)
 {
     ASSERT(m_pEditString, "m_pEditString is null");
 }
@@ -36,8 +36,8 @@ void EditStringPopup::operator()()
     }
 }
 
-EditGameDetectorTargetProgramNamePopup::EditGameDetectorTargetProgramNamePopup(GameDetector& _rGameDetector)
-    : m_pGameDetector(&_rGameDetector)
+EditGameDetectorTargetProgramNamePopup::EditGameDetectorTargetProgramNamePopup(GameDetector& _gameDetectorRef)
+    : m_pGameDetector(&_gameDetectorRef)
 {
     ASSERT(m_pGameDetector, "GameDetector reference is null");
 }
@@ -65,9 +65,9 @@ void EditGameDetectorTargetProgramNamePopup::operator()()
     }
 }
 
-EditHotKeyPopup::EditHotKeyPopup(eKey& _rKey)
-    : m_pEditKey(&_rKey)
-    , m_tmpKey(_rKey)
+EditHotKeyPopup::EditHotKeyPopup(eKey& _keyRef)
+    : m_pEditKey(&_keyRef)
+    , m_tmpKey(_keyRef)
 {
     ASSERT(m_pEditKey, "m_pEditKey is null");
 
@@ -80,7 +80,7 @@ void EditHotKeyPopup::operator()()
     // detect pressed button
     for (int i = 0; i < k_eKeyCount; ++i)
     {
-        eKey key = ToEnum<eKey>(i);
+        eKey key = static_cast<eKey>(i);
 
         // exclude mouse action
         if (!IsAllowedKey_(key))
@@ -151,9 +151,9 @@ void MessageBoxPopup::operator()() const
     }
 }
 
-EditMacroPositionPopup::EditMacroPositionPopup(Vec2& _rPosition, GameDetectorData& _rGameDetectorData)
-    : m_pEditPosition(&_rPosition)
-    , m_pGameDetectorData(&_rGameDetectorData)
+EditMacroPositionPopup::EditMacroPositionPopup(Vec2& _positionRef, GameDetectorData& _gameDetectorRef)
+    : m_pEditPosition(&_positionRef)
+    , m_pGameDetectorData(&_gameDetectorRef)
 {
     ASSERT(m_pEditPosition, "m_pEditPosition is nullptr");
     ASSERT(m_pGameDetectorData, "m_pGameDetectorData is nullptr");
@@ -216,10 +216,10 @@ void ClearApplicationConfigPopup::operator()() const
     }
 }
 
-ClearMacroPopup::ClearMacroPopup(std::vector<Macro>& _rMacros)
-    : m_pMacros(&_rMacros)
+ClearMacroPopup::ClearMacroPopup(std::vector<Macro>& _macroStackRef)
+    : m_pMacroStack(&_macroStackRef)
 {
-    ASSERT(m_pMacros, "macros is nullptr");
+    ASSERT(m_pMacroStack, "macros is nullptr");
 }
 
 void ClearMacroPopup::operator()() const
@@ -229,7 +229,7 @@ void ClearMacroPopup::operator()() const
     ImVec2 buttonWidth = CalcPrettyButtonSize(2);
     if (ImGui::Button("확인", buttonWidth))
     {
-        m_pMacros->clear();
+        m_pMacroStack->clear();
         ImGui::CloseCurrentPopup();
     }
 
@@ -245,7 +245,7 @@ void InformationPopup::operator()() const
     ImGui::Text("Mollu Cursor (v %s)", Application::k_version);
     ImGui::Separator();
 
-    ImGui::TextUnformatted("개발: 몸짱헬창센세 (Juggernaut_Sensei)\n\n"
+    ImGui::TextUnformatted("개발: 몸짱헬창센세 (JuggernautSensei)\n\n"
                            "단순한 마우스 매크로 프로그램입니다.\n"
                            "저 포함 다 같이 유용하게 사용할 수 있는 프로그램이 되길 바랍니다.\n"
                            "자세한 설명은 아래 Github 링크의 Readme를 읽어주세요.\n"

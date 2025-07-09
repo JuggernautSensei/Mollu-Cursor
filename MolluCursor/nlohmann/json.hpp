@@ -27,7 +27,7 @@
 #endif  // JSON_NO_IO
 #include <iterator> // random_access_iterator_tag
 #include <memory> // unique_ptr
-#include <string> // string, stoi, to_string
+#include <string> // string, stoi, ToString
 #include <utility> // declval, forward, move, pair, swap
 #include <vector> // vector
 
@@ -197,7 +197,7 @@
     #include <numeric> // accumulate
 #endif
 #include <stdexcept> // runtime_error
-#include <string> // to_string
+#include <string> // ToString
 #include <vector> // vector
 
 // #include <nlohmann/detail/value_t.hpp>
@@ -4577,7 +4577,7 @@ class exception : public std::exception
                     {
                         if (&current->m_parent->m_data.m_value.array->operator[](i) == current)
                         {
-                            tokens.emplace_back(std::to_string(i));
+                            tokens.emplace_back(std::ToString(i));
                             break;
                         }
                     }
@@ -4636,7 +4636,7 @@ class exception : public std::exception
     {
         if ((leaf_element->start_pos() != std::string::npos) && (leaf_element->end_pos() != std::string::npos))
         {
-            return concat("(bytes ", std::to_string(leaf_element->start_pos()), "-", std::to_string(leaf_element->end_pos()), ") ");
+            return concat("(bytes ", std::ToString(leaf_element->start_pos()), "-", std::ToString(leaf_element->end_pos()), ") ");
         }
         return "";
     }
@@ -5462,7 +5462,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 #include <cstddef> // size_t
-#include <string> // string, to_string
+#include <string> // string, ToString
 
 // #include <nlohmann/detail/abi_macros.hpp>
 
@@ -14644,7 +14644,7 @@ class json_pointer
     {}
 
     /// @brief return a string representation of the JSON pointer
-    /// @sa https://json.nlohmann.me/api/json_pointer/to_string/
+    /// @sa https://json.nlohmann.me/api/json_pointer/ToString/
     string_t to_string() const
     {
         return std::accumulate(reference_tokens.begin(), reference_tokens.end(),
@@ -20385,9 +20385,9 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
         result["compiler"] = {{"family", "clang"}, {"version", __clang_version__}};
 #elif defined(__GNUC__) || defined(__GNUG__)
         result["compiler"] = {{"family", "gcc"}, {"version", detail::concat(
-                    std::to_string(__GNUC__), '.',
-                    std::to_string(__GNUC_MINOR__), '.',
-                    std::to_string(__GNUC_PATCHLEVEL__))
+                    std::ToString(__GNUC__), '.',
+                    std::ToString(__GNUC_MINOR__), '.',
+                    std::ToString(__GNUC_PATCHLEVEL__))
             }
         };
 #elif defined(__HP_cc) || defined(__HP_aCC)
@@ -20407,7 +20407,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 #if defined(_MSVC_LANG)
         result["compiler"]["c++"] = std::to_string(_MSVC_LANG);
 #elif defined(__cplusplus)
-        result["compiler"]["c++"] = std::to_string(__cplusplus);
+        result["compiler"]["c++"] = std::ToString(__cplusplus);
 #else
         result["compiler"]["c++"] = "unknown";
 #endif
@@ -25312,8 +25312,8 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
     /// @}
 };
 
-/// @brief user-defined to_string function for JSON values
-/// @sa https://json.nlohmann.me/api/basic_json/to_string/
+/// @brief user-defined ToString function for JSON values
+/// @sa https://json.nlohmann.me/api/basic_json/ToString/
 NLOHMANN_BASIC_JSON_TPL_DECLARATION
 std::string to_string(const NLOHMANN_BASIC_JSON_TPL& j)
 {

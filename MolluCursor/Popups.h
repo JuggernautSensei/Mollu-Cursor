@@ -6,7 +6,7 @@ class GameDetector;
 class EditStringPopup
 {
 public:
-    explicit EditStringPopup(std::string& _rString);
+    explicit EditStringPopup(std::string& _stringRef);
 
     void operator()();
 
@@ -19,7 +19,7 @@ private:
 class EditGameDetectorTargetProgramNamePopup
 {
 public:
-    explicit EditGameDetectorTargetProgramNamePopup(GameDetector& _rGameDetector);
+    explicit EditGameDetectorTargetProgramNamePopup(GameDetector& _gameDetectorRef);
 
     void operator()();
 
@@ -31,7 +31,7 @@ private:
 class EditHotKeyPopup
 {
 public:
-    explicit EditHotKeyPopup(eKey& _rKey);
+    explicit EditHotKeyPopup(eKey& _keyRef);
 
     void operator()();
 
@@ -57,7 +57,7 @@ private:
 class EditMacroPositionPopup
 {
 public:
-    EditMacroPositionPopup(Vec2& _rPosition, GameDetectorData& _rGameDetectorData);
+    EditMacroPositionPopup(Vec2& _positionRef, GameDetectorData& _gameDetectorRef);
 
     void operator()() const;
 
@@ -75,12 +75,12 @@ public:
 class ClearMacroPopup
 {
 public:
-    explicit ClearMacroPopup(std::vector<Macro>& _rMacros);
+    explicit ClearMacroPopup(std::vector<Macro>& _macroStackRef);
 
     void operator()() const;
 
 private:
-    std::vector<Macro>* m_pMacros = nullptr;
+    std::vector<Macro>* m_pMacroStack = nullptr;
 };
 
 class InformationPopup
