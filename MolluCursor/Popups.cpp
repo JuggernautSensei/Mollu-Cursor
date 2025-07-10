@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 
 #include "Popups.h"
 
@@ -78,14 +78,9 @@ EditHotKeyPopup::EditHotKeyPopup(eKey& _keyRef)
 void EditHotKeyPopup::operator()()
 {
     // detect pressed button
-    for (int i = 0; i < k_eKeyCount; ++i)
+    for (unsigned int i = 0; i < k_eKeyCount; ++i)
     {
         eKey key = static_cast<eKey>(i);
-
-        // exclude mouse action
-        if (!IsAllowedKey_(key))
-            continue;
-
         if (Input::IsKeyPressed(key))
         {
             m_tmpKey = key;
@@ -118,20 +113,6 @@ void EditHotKeyPopup::operator()()
     if (ImGui::Button("취소", buttonSize))
     {
         ImGui::CloseCurrentPopup();
-    }
-}
-
-bool EditHotKeyPopup::IsAllowedKey_(const eKey _key) const
-{
-    switch (_key)
-    {
-        case eKey::LeftButton:
-        case eKey::RightButton:
-        case eKey::MiddleButton:
-            return false;
-
-        default:
-            return true;
     }
 }
 
@@ -185,12 +166,12 @@ void EditMacroPositionPopup::operator()() const
         "마우스 왼쪽 버튼을 눌러 위치를 선택합니다.\n"
         "마우스 오른쪽 버튼을 눌러 편집을 취소합니다.");
 
-    if (Input::IsKeyPressed(eKey::LeftButton))
+    if (Input::IsMousePressed(eMouse::LeftButton))
     {
         *m_pEditPosition = relativePos;
         ImGui::CloseCurrentPopup();
     }
-    else if (Input::IsKeyPressed(eKey::RightButton))
+    else if (Input::IsMousePressed(eMouse::RightButton))
     {
         ImGui::CloseCurrentPopup();
     }
@@ -216,10 +197,10 @@ void ClearApplicationConfigPopup::operator()() const
     }
 }
 
-ClearMacroPopup::ClearMacroPopup(std::vector<Macro>& _macroStackRef)
-    : m_pMacroStack(&_macroStackRef)
+ClearMacroPopup::ClearMacroPopup(std::function<void()> _macroClearCallback)
+    :m_macroClearCallback(std::move(_macroClearCallback))
 {
-    ASSERT(m_pMacroStack, "macros is nullptr");
+    ASSERT(m_macroClearCallback, "callback is nullptr");
 }
 
 void ClearMacroPopup::operator()() const
@@ -229,7 +210,7 @@ void ClearMacroPopup::operator()() const
     ImVec2 buttonWidth = CalcPrettyButtonSize(2);
     if (ImGui::Button("확인", buttonWidth))
     {
-        m_pMacroStack->clear();
+        m_macroClearCallback();
         ImGui::CloseCurrentPopup();
     }
 

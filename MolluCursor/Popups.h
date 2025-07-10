@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 class GameDetector;
 
@@ -36,8 +36,6 @@ public:
     void operator()();
 
 private:
-    NODISCARD bool IsAllowedKey_(eKey _key) const;
-
     eKey*       m_pEditKey;
     eKey        m_tmpKey = eKey::None;
     FString<16> m_buf;
@@ -75,12 +73,12 @@ public:
 class ClearMacroPopup
 {
 public:
-    explicit ClearMacroPopup(std::vector<Macro>& _macroStackRef);
+    explicit ClearMacroPopup(std::function<void()> _macroClearCallback);
 
     void operator()() const;
 
 private:
-    std::vector<Macro>* m_pMacroStack = nullptr;
+    std::function<void()> m_macroClearCallback;
 };
 
 class InformationPopup

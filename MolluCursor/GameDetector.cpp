@@ -1,10 +1,8 @@
-#include "pch.h"
+﻿#include "pch.h"
 
 #include "GameDetector.h"
 
-#include "Utilities.h"
-
-namespace detail
+namespace
 {
 
 struct EnumWindowsProcUserData
@@ -13,36 +11,7 @@ struct EnumWindowsProcUserData
     HWND  hWndOrNull;   // if found. hWnd is target process
 };
 
-}   // namespace detail
-
-void GameDetector::Scan_()
-{
-    DEBUG_SCOPED_STOP_WATCH("start game detector scan");
-    ASSERT(m_bInitialize && m_bRunning, "game detector is not initialized");
-
-    m_detectedPrograms.clear();
-
-    HANDLE         hProcessSnap;
-    PROCESSENTRY32 pe32;
-    hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-
-    if (hProcessSnap == INVALID_HANDLE_VALUE)
-    {
-        ASSERT(0, "CreateToolhelp32Snapshot failed!");
-        return;
-    }
-
-    pe32.dwSize = sizeof(PROCESSENTRY32);
-    if (Process32First(hProcessSnap, &pe32))
-    {
-        do
-        {
-            m_detectedPrograms.emplace(pe32.szExeFile, pe32.th32ProcessID);
-        } while (Process32Next(hProcessSnap, &pe32));
-    }
-
-    CloseHandle(hProcessSnap);
-}
+}   // namespace
 
 void GameDetector::Initialize(const std::wstring_view _targetProgramName, const float _scanIntervalSec, const GameDetectorHandler& _handler)
 {
@@ -51,23 +20,36 @@ void GameDetector::Initialize(const std::wstring_view _targetProgramName, const 
     ASSERT(_handler, "handler is null function!");
     ASSERT(!m_bInitialize && !m_bRunning, "already game detector initialized. need shutdown");
 
-    m_detectedPrograms.clear();
-
-    m_targetProgramName = _targetProgramName;
-    m_scanIntervalSec   = _scanIntervalSec;
     m_handler           = _handler;
-    m_timeCounterSec    = m_scanIntervalSec;   // 바로 스캔하기 위해서 큰 값으로 초기화
+    m_scanIntervalSec   = _scanIntervalSec;
+    m_timeCounterSec    = m_scanIntervalSec;
+    m_targetProgramName = _targetProgramName;
     m_bRunning          = true;
     m_bInitialize       = true;
+
+    m_thread = std::thread {
+        [this]
+        { Run_(); }
+    };
 }
 
 void GameDetector::Shutdown()
 {
     ASSERT(m_bInitialize && m_bRunning, "game detector is not initialized");
-    m_bRunning = false;
+    m_cmdQueue.SubmitCommand(
+        [this]
+        {
+            m_bRunning = false;
+        });
+
+    // 완전히 종료할 때 까지 대기
+    if (m_thread.joinable())
+    {
+        m_thread.join();
+    }
 }
 
-void GameDetector::Run()
+void GameDetector::Run_()
 {
     ASSERT(m_bInitialize && m_bRunning, "game detector is not initialized");
     auto lastCount = std::chrono::high_resolution_clock::now();
@@ -82,56 +64,60 @@ void GameDetector::Run()
         m_timeCounterSec += deltaTime;
         if (m_timeCounterSec >= m_scanIntervalSec)
         {
-            // 스캔
-            Scan_();
+            GameDetectorData data;
+            data.targetProgramName = m_targetProgramName;
 
-            // 타켓 프로그램을 발견했는가?
-            auto it = m_detectedPrograms.find(m_targetProgramName);
-
-            // 데이터 초기화
-            GameDetectorData detectData;
-            detectData.targetProgramName = m_targetProgramName;
-            detectData.bDetected         = false;
-
-            if (it != m_detectedPrograms.end())
+            // 프로세스 스냅샷에서 타겟 프로그램 찾기
+            DWORD          foundPID = 0;
+            PROCESSENTRY32 pe32;
+            pe32.dwSize = sizeof(pe32);
+            HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+            if (snap != INVALID_HANDLE_VALUE)
             {
-                // 타겟을 발견 함
-                DEBUG_SCOPED_STOP_WATCH("start game detector extract target program infos");
+                if (Process32First(snap, &pe32))
+                {
+                    do
+                    {
+                        if (_wcsicmp(pe32.szExeFile, m_targetProgramName.c_str()) == 0)
+                        {
+                            foundPID = pe32.th32ProcessID;
+                            break;
+                        }
+                    } while (Process32Next(snap, &pe32));
+                }
+                CloseHandle(snap);
+            }
 
-                // 프로세트의 HWND 얻기
-                detail::EnumWindowsProcUserData userdata;
-                userdata.targetPID = it->second;
+            // 타겟 프로그램을 찾았다면 데이터 삽입
+            if (foundPID != 0)
+            {
+                data.bDetected = true;
+
+                // 핸들 가져오기
+                EnumWindowsProcUserData userdata;
+                userdata.hWndOrNull = nullptr;
+                userdata.targetPID  = foundPID;
                 EnumWindows(EnumWindowsProc_, reinterpret_cast<LPARAM>(&userdata));
 
                 if (userdata.hWndOrNull)
                 {
-                    // 발견 성공
-                    detectData.bDetected = true;
+                    RECT rect;
+                    GetWindowRect(userdata.hWndOrNull, &rect);
+                    data.windowPosX   = rect.left;
+                    data.windowPosY   = rect.top;
+                    data.windowWidth  = rect.right - rect.left;
+                    data.windowHeight = rect.bottom - rect.top;
 
-                    RECT windowRect;
-                    GetWindowRect(userdata.hWndOrNull, &windowRect);
+                    constexpr float k_16_9 = 16.f / 9.f;
+                    constexpr float k_4_3  = 4.f / 3.f;
 
-                    // 위치, 크기 계산
-                    detectData.windowPosX   = windowRect.left;
-                    detectData.windowPosY   = windowRect.top;
-                    detectData.windowWidth  = windowRect.right - windowRect.left;
-                    detectData.windowHeight = windowRect.bottom - windowRect.top;
-
-                    // 종횡비 계산
-                    constexpr float k_aspectRatio_16_9 = 16.f / 9.f;
-                    constexpr float k_aspectRatio_4_3  = 4.f / 3.f;
-
-                    float aspectRatio      = static_cast<float>(detectData.windowWidth) / static_cast<float>(detectData.windowHeight);
-                    detectData.bWideAspectRatio = std::abs(aspectRatio - k_aspectRatio_16_9) < std::abs(aspectRatio - k_aspectRatio_4_3);
+                    float aspectRatio     = static_cast<float>(data.windowWidth) / static_cast<float>(data.windowHeight);
+                    data.bWideAspectRatio = std::abs(aspectRatio - k_16_9) < std::abs(aspectRatio - k_4_3);
                 }
             }
 
             // 핸들러 호출
-            ASSERT(m_handler, "handler is nullptr");
-            m_handler(detectData);
-
-            // 누적 시간 초기화
-            m_timeCounterSec = 0;
+            m_handler(data);
         }
 
         // 커맨드 큐 실행
@@ -145,12 +131,12 @@ void GameDetector::ChangeTargetProgramName(const std::wstring_view _name)
 {
     ASSERT(m_bInitialize && m_bRunning, "game detector is not initialized");
 
-    // 변경을 요청
+    // 감지기 스레드에 요청 제출
     m_cmdQueue.SubmitCommand(
         [this, name = std::wstring { _name }]() mutable
         {
             m_targetProgramName = std::move(name);
-            m_scanIntervalSec   = m_timeCounterSec;   // 즉시 스캔
+            m_timeCounterSec    = m_scanIntervalSec;   // 즉시 스캔
         });
 }
 
@@ -158,18 +144,18 @@ void GameDetector::ChangeScanInterval(float _scanIntervalSec)
 {
     ASSERT(m_bInitialize && m_bRunning, "game detector is not initialized");
 
-    // 변경을 요청
+    // 감지기 스레드에 요청 제출
     m_cmdQueue.SubmitCommand(
         [this, _scanIntervalSec]
         {
             m_scanIntervalSec = _scanIntervalSec;
-            m_scanIntervalSec = m_timeCounterSec;   // 즉시 스캔
+            m_timeCounterSec  = m_scanIntervalSec;   // 즉시 스캔
         });
 }
 
 BOOL GameDetector::EnumWindowsProc_(const HWND _hWnd, const LPARAM _lParam)
 {
-    detail::EnumWindowsProcUserData* userData = reinterpret_cast<detail::EnumWindowsProcUserData*>(_lParam);
+    EnumWindowsProcUserData* userData = reinterpret_cast<EnumWindowsProcUserData*>(_lParam);
 
     DWORD pid;
     GetWindowThreadProcessId(_hWnd, &pid);

@@ -1,29 +1,18 @@
-#pragma once
+﻿#pragma once
+#include "ApplicationConfig.h"
 #include "GameDetector.h"
+#include "Macro.h"
+#include "pch.h"
 
 class Application
 {
-    struct Config
+    struct MacroNode
     {
-        NODISCARD Json Serialize() const;
-        bool           Deserialize(const Json& _json);
+        Macro macro;
 
-        void Clear();
-
-        // options
-        bool  bGlobalMacro = true;
-        bool  bTopMost     = false;
-        float fontScale    = 1.f;
-
-        // macro visualize
-        bool   bMacroVisualize     = true;
-        float  macroVisualizeScale = 1.f;
-        ImVec4 macroVisualizeColor = ImVec4 { 0.f, 0.f, 0.f, 0.7f };
-
-        // hotkey
-        eKey globalMacroHotkey    = eKey::F5;
-        eKey topMostHotkey        = eKey::F6;
-        eKey macroVisualizeHotkey = eKey::F7;
+        float timeCounterSec = 0.f;
+        eKey  prevHotkey     = eKey::None;
+        bool  bPrevEnable    = false;
     };
 
 public:
@@ -35,13 +24,15 @@ public:
     Application& operator=(Application&&)      = delete;
 
     void Quit();
+    void SubmitCommand(std::function<void()> _command);   // thread-safe
+
     void ClearConfig();
 
-    // singleton
+    // singleton instance
     static NODISCARD Application& GetInstance();
 
     // public config
-    constexpr static const char* const k_version = "0.0.1";
+    constexpr static const char* const k_version = "0.1.1";
 
 private:
     Application();
@@ -53,9 +44,10 @@ private:
 
     // window
     static LRESULT CALLBACK WndProc_(HWND, UINT, WPARAM, LPARAM);
-    void                    SetWindowProperties_(int _x, int _y, int _width, int _height, bool _bTopMost) const;
 
-    // update
+    void SetWindowProperties_(int _x, int _y, int _width, int _height, bool _bTopMost) const;
+
+    // macro
     void UpdateMacros_();
 
     // rendering
@@ -72,29 +64,29 @@ private:
     void ShowWorkSpaceWindow_();
     void ShowMacroVisualizeWindow_() const;
 
-    // serialize macros
-    NODISCARD Json SerializeMacroStack_(const std::vector<Macro>& _macroStack) const;
-    NODISCARD std::optional<std::vector<Macro>> DeserializeMacroStack_(const Json& _json) const;
-
     void SaveMacroStackByFileDialog_();   // using file dialog
     void LoadMacroStackByFileDialog_();   // using file dialog
 
+    // serialize
+    Json           SerializeMacroStack_();
+    NODISCARD bool DeserializeMacroStack_(const Json& _json);
+
     // utilities
     NODISCARD std::string GetSystemErrorString_(HRESULT _hr) const;
-    NODISCARD std::optional<std::filesystem::path> ShowFileDialog_(const wchar_t* _pFilter, BOOL (*_showDialogCallback)(LPOPENFILENAMEW)) const;
+    NODISCARD std::optional<std::filesystem::path> ShowFileDialog_(const wchar_t* _pFilter, BOOL(WINAPI* _showDialogCallback)(LPOPENFILENAMEW)) const;
 
     // etc.
-    void OpenModalWindow_(const std::function<void()>& _guiRenderFn);
+    void OpenModalWindow_(std::function<void()> _guiRenderFn);
     void ApplyConfigChanges_();
+    void ApplyMacroChanges_();
 
     // application
     bool m_bRunning     = false;
     bool m_bInitialized = false;
 
     // config
-    Config m_config         = {};
-    float  m_bPrevFontScale = 0.f;     // dirty checking
-    bool   m_bPrevTopMost   = false;   // dirty checking
+    ApplicationConfig m_config     = {};
+    ApplicationConfig m_prevConfig = {};   // for dirty check
 
     // window
     HINSTANCE m_hInst = nullptr;
@@ -114,10 +106,8 @@ private:
     // program context
     GameDetector     m_gameDetector     = {};
     GameDetectorData m_gameDetectorData = {};
-    std::thread      m_gameDetectorThread;
 
-    // macro
-    std::vector<Macro> m_macroStack = {};
+    std::vector<MacroNode> m_macroStack = {};   // macro stack
 
     // modal
     std::function<void()> m_modalGuiRenderFn = {};
@@ -130,7 +120,7 @@ private:
     ImFont* m_pDefaultFont        = nullptr;
     ImFont* m_pMacroVisualizeFont = nullptr;
 
-    static Application* s_ctx;
+    static Application* s_instance;
     friend int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int);
 
     // configuration

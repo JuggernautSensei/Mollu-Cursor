@@ -253,7 +253,10 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ApplicationConfig.cpp" />
     <ClCompile Include="Base.cpp" />
+    <ClCompile Include="Input.cpp" />
+    <ClCompile Include="Macro.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -311,14 +314,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Product|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Product|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Popups.cpp" />
     <ClCompile Include="Utilities.cpp" />
-    <ClCompile Include="ApplicationConfig.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ApplicationConfig.h" />
     <ClInclude Include="Base.h" />
+    <ClInclude Include="Input.h" />
+    <ClInclude Include="Macro.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Application.h" />
@@ -332,7 +336,6 @@
     <ClInclude Include="imgui\imstb_rectpack.h" />
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
-    <ClInclude Include="Input.h" />
     <ClInclude Include="nlohmann\json.hpp" />
     <ClInclude Include="nlohmann\json_fwd.hpp" />
     <ClInclude Include="Popups.h" />

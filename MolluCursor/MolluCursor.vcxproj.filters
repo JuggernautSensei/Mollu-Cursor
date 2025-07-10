@@ -8,7 +8,6 @@
     <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="Popups.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
-    <ClCompile Include="Input.cpp" />
     <ClCompile Include="imgui\imgui.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
@@ -34,7 +33,9 @@
       <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="Base.cpp" />
+    <ClCompile Include="Input.cpp" />
     <ClCompile Include="ApplicationConfig.cpp" />
+    <ClCompile Include="Macro.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -43,7 +44,6 @@
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="Popups.h" />
     <ClInclude Include="CommandQueue.h" />
-    <ClInclude Include="Input.h" />
     <ClInclude Include="nlohmann\json.hpp">
       <Filter>nlohmann</Filter>
     </ClInclude>
@@ -78,6 +78,9 @@
       <Filter>imgui</Filter>
     </ClInclude>
     <ClInclude Include="Base.h" />
+    <ClInclude Include="Input.h" />
+    <ClInclude Include="ApplicationConfig.h" />
+    <ClInclude Include="Macro.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">

@@ -1,11 +1,11 @@
-#include "pch.h"
+﻿#include "pch.h"
 
 #include "CommandQueue.h"
 
-void CommandQueue::SubmitCommand(const std::function<void()>& _command)
+void CommandQueue::SubmitCommand(std::function<void()> _command)
 {
     std::lock_guard lock { m_mtx };
-    m_queue.emplace_back(_command);
+    m_queue.emplace_back(std::move(_command));
 }
 
 void CommandQueue::Execute()

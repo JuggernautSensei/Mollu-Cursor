@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // for performance measurement
 #ifdef _DEBUG
@@ -15,55 +15,19 @@ constexpr ImVec2 operator*(const ImVec2& a, const float b) { return ImVec2 { a.x
 constexpr ImVec2 operator*(const float a, const ImVec2& b) { return ImVec2 { a * b.x, a * b.y }; }
 
 // string utils
-inline std::string ConvertToString(const std::wstring_view _wStr)
-{
-    std::string str;
-    str.resize(_wStr.size());
-    errno_t errorCode = ::wcstombs_s(nullptr, str.data(), str.size(), _wStr.data(), _wStr.size());
-    ASSERT(errorCode == 0, "Failed to convert wide string to string, error code: %d", errorCode);
-    return str;
-}
-
-inline std::wstring ConvertToWideString(const std::string_view _str)
-{
-    std::wstring wStr;
-    wStr.resize(_str.size());
-    errno_t errorCode = ::mbstowcs_s(nullptr, wStr.data(), wStr.size(), _str.data(), _str.size());
-    ASSERT(errorCode == 0, "Failed to convert string to wide string, error code: %d", errorCode);
-    return wStr;
-}
+std::string  ConvertToString(std::wstring_view _wStr);
+std::wstring ConvertToWideString(std::string_view _str);
 
 // imgui util
-inline ImVec2 CalcPrettyButtonSize(const int _buttonCount)
-{
-    ASSERT(_buttonCount > 0, "_buffer count is bigger than 0");
+ImVec2 CalcPrettyButtonSize(int _buttonCount);
+void   DrawHelpTooltip(const char* _title, const char* _description);
 
-    ImGuiStyle& style       = ImGui::GetStyle();
-    float       availWidth  = ImGui::GetContentRegionAvail().x;
-    float       buttonWidth = (availWidth - static_cast<float>(_buttonCount - 1) * style.ItemSpacing.x) / static_cast<float>(_buttonCount);
-    return ImVec2 { buttonWidth, 0.f };
-}
-
-// imgui widget
-inline void DrawHelpTooltip(const char* _title, const char* _description)
-{
-    ImGui::TextDisabled("(?)");
-    if (ImGui::BeginItemTooltip())
-    {
-        // title
-        ImGui::TextUnformatted(_title);
-
-        // desc
-        ImGui::Separator();
-        ImGui::TextUnformatted(_description);
-
-        ImGui::EndTooltip();
-    }
-}
-
-// json
+// serialization utils
 std::optional<Json> LoadJson(const std::filesystem::path& _path);
 bool                SaveJson(const std::filesystem::path& _path, const Json& _json);
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ImVec4, x, y, z, w);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(Vec2, x, y);
 
 // math utils
 NODISCARD constexpr float AbsoluteFloat(const float _f)
