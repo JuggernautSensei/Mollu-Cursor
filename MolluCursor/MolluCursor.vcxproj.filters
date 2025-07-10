@@ -3,7 +3,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="GameDetector.cpp" />
+    <ClCompile Include="ProgramDetector.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="Popups.cpp" />
@@ -39,7 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
-    <ClInclude Include="GameDetector.h" />
+    <ClInclude Include="ProgramDetector.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Utilities.h" />
     <ClInclude Include="Popups.h" />

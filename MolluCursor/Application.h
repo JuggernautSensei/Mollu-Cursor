@@ -1,18 +1,16 @@
 ﻿#pragma once
 #include "ApplicationConfig.h"
-#include "GameDetector.h"
+#include "CommandQueue.h"
 #include "Macro.h"
+#include "ProgramDetector.h"
 #include "pch.h"
 
 class Application
 {
-    struct MacroNode
+    struct MacroEx
     {
         Macro macro;
-
-        float timeCounterSec = 0.f;
-        eKey  prevHotkey     = eKey::None;
-        bool  bPrevEnable    = false;
+        float timeCounterSec = 0.f;   // for repeat action
     };
 
 public:
@@ -24,9 +22,7 @@ public:
     Application& operator=(Application&&)      = delete;
 
     void Quit();
-    void SubmitCommand(std::function<void()> _command);   // thread-safe
-
-    void ClearConfig();
+    void SubmitCommand(const std::function<void()>& _command);   // thread-safe
 
     // singleton instance
     static NODISCARD Application& GetInstance();
@@ -64,21 +60,20 @@ private:
     void ShowWorkSpaceWindow_();
     void ShowMacroVisualizeWindow_() const;
 
-    void SaveMacroStackByFileDialog_();   // using file dialog
-    void LoadMacroStackByFileDialog_();   // using file dialog
-
     // serialize
     Json           SerializeMacroStack_();
     NODISCARD bool DeserializeMacroStack_(const Json& _json);
+
+    void SaveMacroStackByFileDialog_();   // using file dialog
+    void LoadMacroStackByFileDialog_();   // using file dialog
 
     // utilities
     NODISCARD std::string GetSystemErrorString_(HRESULT _hr) const;
     NODISCARD std::optional<std::filesystem::path> ShowFileDialog_(const wchar_t* _pFilter, BOOL(WINAPI* _showDialogCallback)(LPOPENFILENAMEW)) const;
 
     // etc.
-    void OpenModalWindow_(std::function<void()> _guiRenderFn);
+    void OpenModalWindow_(const std::function<void()>& _guiRenderFn);
     void ApplyConfigChanges_();
-    void ApplyMacroChanges_();
 
     // application
     bool m_bRunning     = false;
@@ -104,10 +99,15 @@ private:
     ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;
 
     // program context
-    GameDetector     m_gameDetector     = {};
-    GameDetectorData m_gameDetectorData = {};
+    struct ProgramDataEx
+    {
+        ProgramData data;
+        std::string programName;
+    };
+    ProgramDetector m_programDetector = {};
+    ProgramDataEx   m_programData     = {};
 
-    std::vector<MacroNode> m_macroStack = {};   // macro stack
+    std::vector<MacroEx> m_macroStack = {};   // macro stack
 
     // modal
     std::function<void()> m_modalGuiRenderFn = {};
@@ -137,8 +137,8 @@ private:
     constexpr static int                  k_windowHeight    = 800;
 
     // game detector
-    constexpr static const wchar_t* const k_targetProgramName           = L"BlueArchive.exe";
-    constexpr static float                k_gameDetectorScanIntervalSec = 1.f;
+    constexpr static const wchar_t* const k_targetProgramName              = L"BlueArchive.exe";
+    constexpr static float                k_programDetectorScanIntervalSec = 1.f;
 
     // color
     constexpr static ImVec4 k_transparentColor = ImVec4(0.f, 0.f, 0.f, 0.f);

@@ -3,8 +3,8 @@
 #include "Application.h"
 
 #include "CommandQueue.h"
-#include "GameDetector.h"
 #include "Popups.h"
+#include "ProgramDetector.h"
 #include "Utilities.h"
 
 #include <filesystem>
@@ -192,26 +192,23 @@ void Application::Initialize_(const HINSTANCE _hInst, [[maybe_unused]] int _nCmd
         m_pMacroVisualizeFont = io.Fonts->AddFontFromFileTTF(path.c_str(), k_macroVisualizeFontSize, nullptr, io.Fonts->GetGlyphRangesKorean());
     }
 
-    // 키 초기화
-    {
-        Input::Initialize();
-    }
-
     // 게임 감지기 초기화
     {
         // 지역 람다로 핸들러 정의
-        auto Handler = [](const GameDetectorData& _data)
+        auto Handler = [](const ProgramData& _data)
         {
             Application& ctx = GetInstance();
             ctx.m_cmdQueue.SubmitCommand(
-                [data = GameDetectorData { _data }]() mutable
+                [data = ProgramData { _data }]() mutable
                 {
-                    Application& context       = GetInstance();
-                    context.m_gameDetectorData = std::move(data);
+                    Application&   context   = GetInstance();
+                    ProgramDataEx& dataExRef = context.m_programData;
+                    dataExRef.data           = std::move(data);
+                    dataExRef.programName    = ConvertToString(dataExRef.data.programName);
                 });
         };
 
-        m_gameDetector.Initialize(k_targetProgramName, k_gameDetectorScanIntervalSec, Handler);
+        m_programDetector.Initialize(k_targetProgramName, k_programDetectorScanIntervalSec, Handler);
     }
 
     // 설정파일 로딩
@@ -254,14 +251,9 @@ void Application::Shutdown_()
         m_hWnd = nullptr;
     }
 
-    // 인풋 파괴
+    // 게임 감지기 종료
     {
-        Input::Shutdown();
-    }
-
-    // 게임 감지기 종료 및 스레드 정리
-    {
-        m_gameDetector.Shutdown();
+        m_programDetector.Shutdown();
     }
 }
 
@@ -308,16 +300,10 @@ void Application::Quit()
     m_bRunning = false;
 }
 
-void Application::ClearConfig()
-{
-    m_prevConfig = m_config;
-    m_config     = ApplicationConfig {};
-}
-
-void Application::SubmitCommand(std::function<void()> _command)
+void Application::SubmitCommand(const std::function<void()>& _command)
 {
     ASSERT(m_bRunning, "Application is not running.");
-    m_cmdQueue.SubmitCommand(std::move(_command));
+    m_cmdQueue.SubmitCommand(_command);
 }
 
 Application& Application::GetInstance()
@@ -338,7 +324,7 @@ void Application::UpdateMacros_()
     ImGuiIO& io        = ImGui::GetIO();
     float    deltaTime = 1.f / io.Framerate;
 
-    for (MacroNode& nodeRef: m_macroStack)
+    for (MacroEx& nodeRef: m_macroStack)
     {
         // tick
         nodeRef.timeCounterSec += deltaTime;
@@ -354,7 +340,8 @@ void Application::UpdateMacros_()
             continue;
 
         // 눌렀는데 게임이 감지되지 않은 경우 스킵
-        if (Input::IsKeyDown(macro.hotkey) && !m_gameDetectorData.bDetected)
+        const ProgramData& programData = m_programData.data;
+        if (Input::IsKeyDown(macro.hotkey) && !programData.bValid)
         {
             MessageBoxPopup popup { "매크로는 게임이 감지된 경우에만 사용할 수 있습니다." };
             OpenModalWindow_(popup);
@@ -394,8 +381,8 @@ void Application::UpdateMacros_()
         if (bMove)
         {
             // 상대 위치 -> 절대 위치 변환
-            int x = m_gameDetectorData.windowPosX + static_cast<int>(static_cast<float>(m_gameDetectorData.windowWidth) * macro.position.x);
-            int y = m_gameDetectorData.windowPosY + static_cast<int>(static_cast<float>(m_gameDetectorData.windowHeight) * macro.position.y);
+            int x = programData.windowPosX + static_cast<int>(static_cast<float>(programData.windowWidth) * macro.position.x);
+            int y = programData.windowPosY + static_cast<int>(static_cast<float>(programData.windowHeight) * macro.position.y);
             SetCursorPos(x, y);
         }
 
@@ -443,9 +430,6 @@ void Application::Render_()
 
     // 설정파일 변경사항 적용
     ApplyConfigChanges_();
-
-    // 매크로 변경사항 적용
-    ApplyMacroChanges_();
 }
 
 void Application::EndFrame_() const
@@ -557,7 +541,7 @@ void Application::ShowModalWindow_()
     ImVec2           center  = ImGui::GetMainViewport()->GetCenter();
 
     // 모든 메시지박스 형태의 gui 는 여기서 처리됨
-    ImGui::SetNextWindowPos(center, ImGuiCond_Always, k_pivot);   // 가운데 정렬
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, k_pivot);   // 가운데 정렬
     if (ImGui::BeginPopupModal("information", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoScrollbar))
     {
         // draw user custom modal GUI
@@ -589,50 +573,49 @@ void Application::ShowWorkSpaceWindow_()
     // 정보
     {
         ImGui::Text("Mollu Cursor (v %s)", k_version);
-
-        ImGui::SameLine();
-        ImGui::TextDisabled("more..");
-        if (ImGui::IsItemClicked())
-        {
-            InformationPopup popup;
-            OpenModalWindow_(popup);
-        }
-
         ImGui::Separator();
     }
 
-    // 게임 감지기 섹션
+    // 프로그램 감지기 섹션
     {
-        ImGui::BulletText("게임 감지");
-        ImGui::TreePush("GameDetector");
+        ImGui::BulletText("프로그램 감지");
+        ImGui::TreePush("ProgramDetector");
 
-        if (m_gameDetectorData.bDetected)
+        const ProgramData& programData = m_programData.data;
+        if (programData.bValid)
         {
-            ImGui::TextColored(k_greenColor, "게임 감지됨");
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextColored(k_greenColor, "프로그램이 감지됨");
 
-            ImGui::Text("윈도우 좌상단 위치: (%d, %d)", m_gameDetectorData.windowPosX, m_gameDetectorData.windowPosY);
-            ImGui::Text("윈도우 해상도: (%d, %d)", m_gameDetectorData.windowWidth, m_gameDetectorData.windowHeight);
-            ImGui::Text("종횡비: %s", m_gameDetectorData.bWideAspectRatio ? "16:9" : "4:3");
+            ImGui::SameLine();
+            if (ImGui::Button("감지 풀기"))
+            {
+                m_programDetector.ChangeTargetProgramName(L"");
+            }
+
+            ImGui::Text("프로그램 이름: %s", m_programData.programName.c_str());
+            ImGui::Text("윈도우 좌상단 위치: (%d, %d)", programData.windowPosX, programData.windowPosY);
+            ImGui::Text("윈도우 해상도: (%d, %d)", programData.windowWidth, programData.windowHeight);
+            ImGui::Text("종횡비: %s", programData.bWideAspectRatio ? "16:9" : "4:3");
         }
         else
         {
-            ImGui::TextUnformatted("다음 프로그램을 감지합니다.");
+            ImGui::TextUnformatted("다음 프로그램을 감시합니다.");
 
             ImGuiStyle& style          = ImGui::GetStyle();
             float       inputTextWidth = ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("편집").x - style.FramePadding.x * 2.f - style.ItemSpacing.x;
-            std::string targetName     = ConvertToString(m_gameDetectorData.targetProgramName);
 
             ImGui::SetNextItemWidth(inputTextWidth);
-            ImGui::InputText("##FindingProgram", &targetName, ImGuiInputTextFlags_ReadOnly);
+            ImGui::InputText("##FindingProgram", &m_programData.programName, ImGuiInputTextFlags_ReadOnly);
 
             ImGui::SameLine();
             if (ImGui::Button("편집"))
             {
-                EditGameDetectorTargetProgramNamePopup popup { m_gameDetector };
+                EditProgramDetectorTargetProgramPopup popup { m_programDetector };
                 OpenModalWindow_(popup);
             }
 
-            ImGui::TextColored(k_blueColor, "게임을 찾고있습니다.");
+            ImGui::TextColored(k_blueColor, "프로그램을 찾고있습니다.");
         }
 
         ImGui::TreePop();
@@ -643,6 +626,16 @@ void Application::ShowWorkSpaceWindow_()
     {
         ImGui::BulletText("메뉴");
         ImGui::TreePush("Menu");
+
+        // 설명서
+        {
+            ImVec2 prettyButtonSize = CalcPrettyButtonSize(1);
+            if (ImGui::Button("반드시 읽어주세요", prettyButtonSize))
+            {
+                ReadMePopup popup;
+                OpenModalWindow_(popup);
+            }
+        }
 
         ImVec2 prettyButtonSize = CalcPrettyButtonSize(3);
 
@@ -666,7 +659,7 @@ void Application::ShowWorkSpaceWindow_()
         {
             ImGui::SameLine();
             ImGui::SetNextItemShortcut(ImGuiMod_Ctrl | ImGuiKey_O);
-            if (ImGui::Button("매크로 불러오기", prettyButtonSize))
+            if (ImGui::Button("매크로 로드", prettyButtonSize))
             {
                 LoadMacroStackByFileDialog_();
             }
@@ -684,7 +677,12 @@ void Application::ShowWorkSpaceWindow_()
             ImGui::SameLine();
             if (ImGui::Button("설정 초기화", prettyButtonSize))
             {
-                ClearApplicationConfigPopup popup {};
+                ClearApplicationConfigPopup popup {
+                    [this]
+                    {
+                        m_config = ApplicationConfig {};
+                    }
+                };
                 OpenModalWindow_(popup);
             }
         }
@@ -695,7 +693,6 @@ void Application::ShowWorkSpaceWindow_()
             {
                 GlobalMacro = 0,
                 TopMost,
-                InputIntercept,
                 MacroVisualize,
                 MacroAimVisualize,
 
@@ -706,7 +703,6 @@ void Application::ShowWorkSpaceWindow_()
             bool* optionEnables[k_eOptionCount] = {
                 &m_config.bGlobalMacro,
                 &m_config.bTopMost,
-                &m_config.bInputIntercept,
                 &m_config.bMacroVisualize,
                 &m_config.bMacroAimVisualize
             };
@@ -714,7 +710,6 @@ void Application::ShowWorkSpaceWindow_()
             eKey* optionHotkeys[k_eOptionCount] = {
                 &m_config.globalMacroHotkey,
                 &m_config.topMostHotkey,
-                &m_config.inputInterceptHotkey,
                 &m_config.macroVisualizeHotkey,
                 &m_config.macroAimVisualizeHotkey,
             };
@@ -726,7 +721,6 @@ void Application::ShowWorkSpaceWindow_()
                 constexpr const char* const k_label[k_eOptionCount][2] = {
                     { "모든 매크로가 활성화 됨", "모든 매크로가 비활성화 됨" },
                     { "가장 위에 띄우기 활성화 됨", "가장 위에 띄우기 비활성화 됨" },
-                    { "입력 가로채기 활성화 됨", "입력 가로채기 비활성화 됨" },
                     { "매크로 시각화 활성화 됨", "매크로 시각화 비활성화 됨" },
                     { "매크로 조준점 시각화 활성화 됨", "매크로 조준점 시각화 비활성화 됨" }
                 };
@@ -734,11 +728,6 @@ void Application::ShowWorkSpaceWindow_()
                 constexpr const char* const k_optionDescriptor[k_eOptionCount] = {
                     nullptr,   // 특별한 설명서가 존재하지 않음
                     nullptr,   // 특별한 설명서가 존재하지 않음
-
-                    // input intercept
-                    "매크로 실행시 다른 어플리케이션에 키보드 입력이 전달되지 않도록 합니다.\n"
-                    "블루 아카이브는 스킬 조준 도중 다른 키를 누르면 조준이 풀리기에\n"
-                    "해당 옵션을 켜줘야 매크로가 정확하게 적용됩니다.",
 
                     // macro visualize
                     "매크로 시각화는 게임이 감지된 경우에만 동작합니다.",
@@ -759,7 +748,7 @@ void Application::ShowWorkSpaceWindow_()
 
                     ImGui::TableSetColumnIndex(0);
                     {
-                        const char* const label = pEnable ? labels[0] : labels[1];
+                        const char* const label = *pEnable ? labels[0] : labels[1];
                         ImGui::Checkbox(label, pEnable);
                     }
 
@@ -832,16 +821,16 @@ void Application::ShowWorkSpaceWindow_()
                     ImGui::SliderFloat("매크로 시각화 스케일", &m_config.macroVisualizeScale, 0.1f, 4.f, "%.2f", ImGuiSliderFlags_AlwaysClamp);
 
                     float* pColor = reinterpret_cast<float*>(&m_config.macroVisualizeColor);
-                    ImGui::ColorEdit3("매크로 시각화 색상", pColor);
+                    ImGui::ColorEdit3("매크로 색상", pColor);
 
                     float* pAlpha = pColor + 3;
-                    ImGui::SliderFloat("매크로 시각화 투명도", pAlpha, 0.f, 1.f);
+                    ImGui::SliderFloat("매크로 색상 투명도", pAlpha, 0.f, 1.f);
                 }
 
                 // 매크로 조준점
                 {
-                    float* pColor = reinterpret_cast<float*>(&m_config.macroVisualizeColor);
-                    ImGui::ColorEdit3("매크로 조준점 시각화 색상", pColor);
+                    float* pColor = reinterpret_cast<float*>(&m_config.macroAimVisualizeColor);
+                    ImGui::ColorEdit3("매크로 조준점 색상", pColor);
                 }
             }
         }
@@ -862,7 +851,7 @@ void Application::ShowWorkSpaceWindow_()
             // 추가
             if (ImGui::Button("매크로 추가", prettyButtonWidth))
             {
-                MacroNode node;
+                MacroEx node;
                 node.macro.name = std::format("매크로 {}", m_macroStack.size());
                 m_macroStack.emplace_back(std::move(node));
             }
@@ -889,8 +878,8 @@ void Application::ShowWorkSpaceWindow_()
             if (ImGui::BeginTable("MacroTable", 2, ImGuiTableFlags_SizingStretchProp))
             {
                 ImGui::PushID(static_cast<int>(i));
-                MacroNode& nodeRef  = m_macroStack[i];
-                Macro&     macroRef = nodeRef.macro;
+                MacroEx& nodeRef  = m_macroStack[i];
+                Macro&   macroRef = nodeRef.macro;
 
                 // Row 1: macro name
                 ImGui::TableNextRow();
@@ -925,7 +914,7 @@ void Application::ShowWorkSpaceWindow_()
                         }
                     }
                 }
-              
+
                 // Row 2: hot key
                 ImGui::TableNextRow();
                 {
@@ -996,15 +985,16 @@ void Application::ShowWorkSpaceWindow_()
                         // edit button
                         ImGui::SameLine();
                         {
-                            ImGui::BeginDisabled(!m_gameDetectorData.bDetected);
+                            const ProgramData& programData = m_programData.data;
+                            ImGui::BeginDisabled(!programData.bValid);
                             if (ImGui::Button("편집"))
                             {
-                                EditMacroPositionPopup popup { macroRef.position, m_gameDetectorData };
+                                EditMacroPositionPopup popup { macroRef.position, programData };
                                 OpenModalWindow_(popup);
                             }
                             ImGui::EndDisabled();
 
-                            if (!m_gameDetectorData.bDetected)
+                            if (!programData.bValid)
                             {
                                 if (ImGui::BeginItemTooltip())
                                 {
@@ -1196,15 +1186,16 @@ void Application::ShowWorkSpaceWindow_()
 void Application::ShowMacroVisualizeWindow_() const
 {
     // target program이 감지된 경우에만 시각화 패널 활성화
-    bool bEnable = m_gameDetectorData.bDetected && m_config.bMacroVisualize;
+    const ProgramData& programData = m_programData.data;
+    bool               bEnable     = programData.bValid && m_config.bMacroVisualize;
     if (!bEnable)
     {
         return;
     }
 
     // 감지된 게임 윈도우 만큼의 뷰포트를 생성
-    ImVec2 windowSize = { static_cast<float>(m_gameDetectorData.windowWidth), static_cast<float>(m_gameDetectorData.windowHeight) };
-    ImVec2 windowPos  = { static_cast<float>(m_gameDetectorData.windowPosX), static_cast<float>(m_gameDetectorData.windowPosY) };
+    ImVec2 windowSize = { static_cast<float>(programData.windowWidth), static_cast<float>(programData.windowHeight) };
+    ImVec2 windowPos  = { static_cast<float>(programData.windowPosX), static_cast<float>(programData.windowPosY) };
 
     ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
     ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
@@ -1224,7 +1215,7 @@ void Application::ShowMacroVisualizeWindow_() const
 
     // 매크로 시각화 시작
     ImDrawList* drawList = ImGui::GetWindowDrawList();
-    for (const MacroNode& node: m_macroStack)
+    for (const MacroEx& node: m_macroStack)
     {
         const Macro& macro = node.macro;
 
@@ -1234,8 +1225,8 @@ void Application::ShowMacroVisualizeWindow_() const
             continue;
 
         // 로컬 좌표 -> 전역 좌표
-        float cx = static_cast<float>(m_gameDetectorData.windowPosX) + static_cast<float>(m_gameDetectorData.windowWidth) * macro.position.x;
-        float cy = static_cast<float>(m_gameDetectorData.windowPosY) + static_cast<float>(m_gameDetectorData.windowHeight) * macro.position.y;
+        float cx = static_cast<float>(programData.windowPosX) + static_cast<float>(programData.windowWidth) * macro.position.x;
+        float cy = static_cast<float>(programData.windowPosY) + static_cast<float>(programData.windowHeight) * macro.position.y;
 
         // 반투명 원
         constexpr float k_visualizeCircleRadius = 50.f;   // 기본 사이즈
@@ -1245,7 +1236,7 @@ void Application::ShowMacroVisualizeWindow_() const
         // 조준점 렌더링
         if (m_config.bMacroAimVisualize)
         {
-            constexpr float k_aimCircleRadius = 10.f;   // 기본 고정 사이즈
+            constexpr float k_aimCircleRadius = 3.f;   // 기본 (고정) 사이즈
             ImVec4          color             = m_config.macroAimVisualizeColor;
             color.w                           = 1.f;
             drawList->AddCircleFilled(ImVec2 { cx, cy }, k_aimCircleRadius, ImGui::GetColorU32(color), 32);
@@ -1296,44 +1287,6 @@ void Application::ApplyConfigChanges_()
         SetWindowProperties_(m_windowPosX, m_windowPosY, m_windowWidth, m_windowHeight, m_config.bTopMost);
         m_prevConfig.bTopMost = m_config.bTopMost;
     }
-
-    // 글로벌 입략 변경 감지
-    if (m_prevConfig.bInputIntercept != m_config.bInputIntercept)
-    {
-        Input::SetGlobalInputInterceptEnabled(m_config.bInputIntercept);
-        m_prevConfig.bInputIntercept = m_config.bInputIntercept;
-    }
-
-    // 글로벌 매크로 변경 감지
-    if (m_prevConfig.bGlobalMacro != m_config.bGlobalMacro)
-    {
-        Input::SetGlobalInputInterceptEnabled(m_config.bGlobalMacro);
-        m_prevConfig.bGlobalMacro = m_config.bGlobalMacro;
-    }
-}
-
-void Application::ApplyMacroChanges_()
-{
-    for (MacroNode& nodeRef: m_macroStack)
-    {
-        const Macro& macro = nodeRef.macro;
-
-        // 매크로 핫키 변경 감지
-        if (nodeRef.prevHotkey != macro.hotkey)
-        {
-            Input::SetInputInterceptState(nodeRef.prevHotkey, false);
-            Input::SetInputInterceptState(macro.hotkey, true);
-            nodeRef.prevHotkey = macro.hotkey;
-        }
-
-        // 매크로의 활성화 변경 감지
-        // 만약 매크로가 비활성화 되어있으면 블로킹도 하지 않음
-        if (nodeRef.bPrevEnable != macro.bEnable)
-        {
-            Input::SetInputInterceptState(macro.hotkey, macro.bEnable);
-            nodeRef.bPrevEnable = macro.bEnable;
-        }
-    }
 }
 
 std::string Application::GetSystemErrorString_(const HRESULT _hr) const
@@ -1345,9 +1298,9 @@ std::string Application::GetSystemErrorString_(const HRESULT _hr) const
     return result;
 }
 
-void Application::OpenModalWindow_(std::function<void()> _guiRenderFn)
+void Application::OpenModalWindow_(const std::function<void()>& _guiRenderFn)
 {
-    m_modalGuiRenderFn = std::move(_guiRenderFn);
+    m_modalGuiRenderFn = _guiRenderFn;
     m_bModalWindowOpen = true;
 }
 
@@ -1355,7 +1308,7 @@ Json Application::SerializeMacroStack_()
 {
     Json json;
 
-    for (MacroNode& nodeRef: m_macroStack)
+    for (MacroEx& nodeRef: m_macroStack)
     {
         MacroSerializer serializer { nodeRef.macro };
         json.emplace_back(serializer.Serialize());

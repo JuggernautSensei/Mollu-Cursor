@@ -265,7 +265,7 @@
     </ClCompile>
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="Application.cpp" />
-    <ClCompile Include="GameDetector.cpp" />
+    <ClCompile Include="ProgramDetector.cpp" />
     <ClCompile Include="imgui\imgui.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -326,7 +326,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Application.h" />
-    <ClInclude Include="GameDetector.h" />
+    <ClInclude Include="ProgramDetector.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_impl_dx11.h" />

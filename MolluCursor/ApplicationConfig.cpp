@@ -17,7 +17,6 @@ Json ConfigSerializer::Serialize() const
     // serialize config
     json["global_macro_enabled"] = m_pConfig->bGlobalMacro;
     json["top_most"]             = m_pConfig->bTopMost;
-    json["input_intercept"]      = m_pConfig->bInputIntercept;
     json["font_scale"]           = io.FontGlobalScale;
 
     json["macro_visualize_enabled"] = m_pConfig->bMacroVisualize;
@@ -30,7 +29,6 @@ Json ConfigSerializer::Serialize() const
     // hotkey
     json["global_macro_hotkey"]        = m_pConfig->globalMacroHotkey;
     json["top_most_hotkey"]            = m_pConfig->topMostHotkey;
-    json["input_interaction_hotkey"]   = m_pConfig->inputInterceptHotkey;
     json["macro_visualize_hotkey"]     = m_pConfig->macroVisualizeHotkey;
     json["macro_aim_visualize_hotkey"] = m_pConfig->macroAimVisualizeHotkey;
 
@@ -50,7 +48,6 @@ bool ConfigSerializer::Deserialize(const Json& _json) const
     // deserialize config
     m_pConfig->bGlobalMacro    = _json.value("global_macro_enabled", m_pConfig->bGlobalMacro);
     m_pConfig->bTopMost        = _json.value("top_most", m_pConfig->bTopMost);
-    m_pConfig->bInputIntercept = _json.value("input_intercept", m_pConfig->bInputIntercept);
     m_pConfig->fontScale       = _json.value("font_scale", m_pConfig->fontScale);
 
     m_pConfig->bMacroVisualize     = _json.value("macro_visualize_enabled", m_pConfig->bMacroVisualize);
@@ -63,26 +60,14 @@ bool ConfigSerializer::Deserialize(const Json& _json) const
     // hotkey
     m_pConfig->globalMacroHotkey       = _json.value("global_macro_hotkey", m_pConfig->globalMacroHotkey);
     m_pConfig->topMostHotkey           = _json.value("top_most_hotkey", m_pConfig->topMostHotkey);
-    m_pConfig->inputInterceptHotkey    = _json.value("input_interaction_hotkey", m_pConfig->inputInterceptHotkey);
     m_pConfig->macroVisualizeHotkey    = _json.value("macro_visualize_hotkey", m_pConfig->macroVisualizeHotkey);
     m_pConfig->macroAimVisualizeHotkey = _json.value("macro_aim_visualize_hotkey", m_pConfig->macroAimVisualizeHotkey);
 
-    auto GetValidEnum = [](const eKey _key)
-    {
-        std::string_view enumName = ToString(_key);
-        if (enumName.empty())
-        {
-            return eKey::None;
-        }
-        return _key;
-    };
-
     // fix hotkey values
-    m_pConfig->globalMacroHotkey       = GetValidEnum(m_pConfig->globalMacroHotkey);
-    m_pConfig->topMostHotkey           = GetValidEnum(m_pConfig->topMostHotkey);
-    m_pConfig->inputInterceptHotkey    = GetValidEnum(m_pConfig->inputInterceptHotkey);
-    m_pConfig->macroVisualizeHotkey    = GetValidEnum(m_pConfig->macroVisualizeHotkey);
-    m_pConfig->macroAimVisualizeHotkey = GetValidEnum(m_pConfig->macroAimVisualizeHotkey);
+    m_pConfig->globalMacroHotkey       = GetValidEnum(m_pConfig->globalMacroHotkey, eKey::None);
+    m_pConfig->topMostHotkey           = GetValidEnum(m_pConfig->topMostHotkey, eKey::None);
+    m_pConfig->macroVisualizeHotkey    = GetValidEnum(m_pConfig->macroVisualizeHotkey, eKey::None);
+    m_pConfig->macroAimVisualizeHotkey = GetValidEnum(m_pConfig->macroAimVisualizeHotkey, eKey::None);
 
     return true;
 }

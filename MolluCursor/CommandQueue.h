@@ -12,7 +12,7 @@ public:
     CommandQueue& operator=(const CommandQueue&)     = delete;
     CommandQueue& operator=(CommandQueue&&) noexcept = delete;
 
-    void SubmitCommand(std::function<void()> _command);   // thread-safe
+    void SubmitCommand(const std::function<void()>& _command);   // thread-safe
     void Execute();                                       // non-thread-safe (only call one thread)
 
 private:

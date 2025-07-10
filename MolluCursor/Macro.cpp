@@ -42,23 +42,9 @@ bool MacroSerializer::Deserialize(const Json& _json) const
     m_pMacro->bMove    = _json.value("move_enabled", m_pMacro->bMove);
 
     // 열거형 예외처리
-    {
-        std::string_view enumName = ToString(m_pMacro->hotkey);
-        if (enumName.empty())
-            m_pMacro->hotkey = eKey::None;
-    }
-
-    {
-        std::string_view enumName = ToString(m_pMacro->button);
-        if (enumName.empty())
-            m_pMacro->button = eMacroButton::None;
-    }
-
-    {
-        std::string_view enumName = ToString(m_pMacro->action);
-        if (enumName.empty())
-            m_pMacro->action = eMacroAction::None;
-    }
+    m_pMacro->hotkey = GetValidEnum(m_pMacro->hotkey, eKey::None);
+    m_pMacro->button = GetValidEnum(m_pMacro->button, eMacroButton::None);
+    m_pMacro->action = GetValidEnum(m_pMacro->action, eMacroAction::None);
 
     return true;
 }

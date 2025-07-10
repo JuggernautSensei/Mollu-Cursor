@@ -200,7 +200,7 @@ enum class eMouse : int
     MiddleButton,
     RightButton,
 
-    Count 
+    Count
 };
 constexpr int k_eMouseCount = static_cast<int>(eMouse::Count);
 
@@ -420,14 +420,14 @@ private:
     std::chrono::high_resolution_clock::time_point m_start;
 };
 
-struct GameDetectorData
+struct ProgramData
 {
-    bool bDetected = false;
+    bool bValid = false;
 
-    std::wstring targetProgramName = {};
-    int          windowPosX        = 0;
-    int          windowPosY        = 0;
-    int          windowWidth       = 0;
-    int          windowHeight      = 0;
-    bool         bWideAspectRatio  = false;   // true: 16:9, false: 4:3
+    std::wstring programName      = {};
+    int          windowPosX       = 0;
+    int          windowPosY       = 0;
+    int          windowWidth      = 0;
+    int          windowHeight     = 0;
+    bool         bWideAspectRatio = false;   // true: 16:9, false: 4:3
 };

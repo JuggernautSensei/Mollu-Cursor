@@ -39,3 +39,24 @@ NODISCARD constexpr bool IsAlmostSame(const float _left, const float _right)
 {
     return AbsoluteFloat(_left - _right) < 1e-6f;
 }
+
+// enum utils
+// ToString 함수에 의존함. ToString은 유효하지 않은 enum 값에 대해 빈 문자열을 반환한다고 가정
+template<typename T>
+NODISCARD bool IsValidEnum(const T _value)
+{
+    static_assert(std::is_enum_v<T>, "T must be an enum type");
+    static_assert(std::is_same_v<typename decltype(ToString(std::declval<T>()))::value_type, char>, "ToString must return a string_view or string type");
+    std::string_view enumName = ToString(_value);
+    return !enumName.empty();
+}
+template<typename T>
+NODISCARD T GetValidEnum(const T _value, const T _valueIfInvalid)
+{
+    static_assert(std::is_enum_v<T>, "T must be an enum type");
+    if (IsValidEnum(_value))
+    {
+        return _value;
+    }
+    return _valueIfInvalid;
+}

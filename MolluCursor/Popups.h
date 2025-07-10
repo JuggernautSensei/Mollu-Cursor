@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-class GameDetector;
+class ProgramDetector;
 
 // popups
 class EditStringPopup
@@ -16,16 +16,16 @@ private:
 };
 
 // popups
-class EditGameDetectorTargetProgramNamePopup
+class EditProgramDetectorTargetProgramPopup
 {
 public:
-    explicit EditGameDetectorTargetProgramNamePopup(GameDetector& _gameDetectorRef);
+    explicit EditProgramDetectorTargetProgramPopup(ProgramDetector& _programDetectorRef);
 
     void operator()();
 
 private:
-    GameDetector* m_pGameDetector;
-    std::string   m_tmpString;
+    ProgramDetector* m_pProgramDetector;
+    std::string      m_tmpString;
 };
 
 class EditHotKeyPopup
@@ -55,25 +55,30 @@ private:
 class EditMacroPositionPopup
 {
 public:
-    EditMacroPositionPopup(Vec2& _positionRef, GameDetectorData& _gameDetectorRef);
+    EditMacroPositionPopup(Vec2& _positionRef, ProgramData _programDetector);
 
     void operator()() const;
 
 private:
-    Vec2*             m_pEditPosition     = nullptr;
-    GameDetectorData* m_pGameDetectorData = nullptr;
+    Vec2*       m_pEditPosition = nullptr;
+    ProgramData m_programData;
 };
 
 class ClearApplicationConfigPopup
 {
 public:
+    explicit ClearApplicationConfigPopup(const std::function<void()>& _configClearCallback);
+
     void operator()() const;
+
+private:
+    std::function<void()> m_configClearCallback;
 };
 
 class ClearMacroPopup
 {
 public:
-    explicit ClearMacroPopup(std::function<void()> _macroClearCallback);
+    explicit ClearMacroPopup(const std::function<void()>& _macroClearCallback);
 
     void operator()() const;
 
@@ -81,7 +86,7 @@ private:
     std::function<void()> m_macroClearCallback;
 };
 
-class InformationPopup
+class ReadMePopup
 {
 public:
     void operator()() const;

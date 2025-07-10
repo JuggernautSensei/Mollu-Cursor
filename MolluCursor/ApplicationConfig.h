@@ -3,10 +3,9 @@
 struct ApplicationConfig
 {
     // options
-    bool  bGlobalMacro    = true;
-    bool  bTopMost        = false;
-    bool  bInputIntercept = true;
-    float fontScale       = 1.f;
+    bool  bGlobalMacro = true;
+    bool  bTopMost     = false;
+    float fontScale    = 1.f;
 
     // macro visualize
     bool   bMacroVisualize     = true;
@@ -14,17 +13,16 @@ struct ApplicationConfig
     ImVec4 macroVisualizeColor = ImVec4 { 0.f, 0.f, 0.f, 0.7f };
 
     bool   bMacroAimVisualize     = true;
-    ImVec4 macroAimVisualizeColor = ImVec4 { 0.f, 0.f, 0.f, 1.0f };
-    
+    ImVec4 macroAimVisualizeColor = ImVec4 { 1.f, 0.f, 0.f, 1.0f };
+
     // hotkey
-    eKey globalMacroHotkey       = eKey::F5;
-    eKey topMostHotkey           = eKey::F6;
-    eKey inputInterceptHotkey    = eKey::F7;
-    eKey macroVisualizeHotkey    = eKey::F8;
-    eKey macroAimVisualizeHotkey = eKey::F9;
+    eKey globalMacroHotkey       = eKey::Key7;
+    eKey topMostHotkey           = eKey::Key8;
+    eKey macroVisualizeHotkey    = eKey::Key9;
+    eKey macroAimVisualizeHotkey = eKey::Key0;
 };
 
- // for serialization
+// for serialization
 class ConfigSerializer
 {
 public:
