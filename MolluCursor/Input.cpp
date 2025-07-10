@@ -52,6 +52,16 @@ void Input::Initialize()
     g_inputState.bInitialized = true;
 }
 
+void Input::Update()
+{
+    for (int i = 0; i < k_eMouseCount; i++)
+    {
+        constexpr int vKey[k_eMouseCount] = { VK_LBUTTON, VK_RBUTTON, VK_MBUTTON };
+        g_inputState.prevMouseDownStates[i] = g_inputState.mouseDownStates[i];
+        g_inputState.mouseDownStates[i]     = GetAsyncKeyState(vKey[i]) & 0x8000;
+    }
+}
+
 void Input::Shutdown()
 {
     ASSERT(g_inputState.bInitialized, "Input system not initialized!");

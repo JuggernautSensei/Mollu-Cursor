@@ -14,9 +14,9 @@
     "macro_aim_visualize_hotkey": 120,
     "macro_visualize_color": {
         "w": 0.699999988079071,
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
+        "x": 0.9845559597015381,
+        "y": 0.015205522067844868,
+        "z": 0.015205522067844868
     },
     "macro_visualize_enabled": true,
     "macro_visualize_hotkey": 119,

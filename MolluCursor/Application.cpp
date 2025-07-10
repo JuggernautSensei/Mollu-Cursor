@@ -285,6 +285,9 @@ int Application::Run_()
         }
         else
         {
+            // 인풋 업데이트
+            Input::Update();
+
             // 로직 처리
             UpdateMacros_();
 
@@ -922,7 +925,7 @@ void Application::ShowWorkSpaceWindow_()
                         }
                     }
                 }
-
+              
                 // Row 2: hot key
                 ImGui::TableNextRow();
                 {
@@ -1494,46 +1497,6 @@ LRESULT Application::WndProc_(const HWND hWnd, const UINT message, const WPARAM 
             ctx.OnMove_(static_cast<int>(x), static_cast<int>(y));
         }
         break;
-
-        case WM_LBUTTONDOWN:
-        {
-            Input::OnMouseEvent_(eMouse::LeftButton, true);
-        }
-        break;
-
-        case WM_LBUTTONUP:
-        {
-            Input::OnMouseEvent_(eMouse::LeftButton, false);
-        }
-        break;
-
-        case WM_MBUTTONDOWN:
-        {
-            Input::OnMouseEvent_(eMouse::MiddleButton, true);
-        }
-        break;
-
-        case WM_MBUTTONUP:
-        {
-            Input::OnMouseEvent_(eMouse::MiddleButton, false);
-        }
-        break;
-
-        case WM_RBUTTONDOWN:
-        {
-            Input::OnMouseEvent_(eMouse::RightButton, true);
-        }
-        break;
-
-        case WM_RBUTTONUP:
-        {
-            Input::OnMouseEvent_(eMouse::RightButton, false);
-        }
-        break;
-
-        default:
-            return ::DefWindowProcW(hWnd, message, wParam, lParam);
     }
-
-    return true;
+    return ::DefWindowProcW(hWnd, message, wParam, lParam);
 }

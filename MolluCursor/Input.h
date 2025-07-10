@@ -1,27 +1,13 @@
 ﻿#pragma once
 
-struct InputEvent
-{
-    enum class eInputType
-    {
-        KeyDown,
-        KeyUp,
-        MouseDown,
-        MouseUp,
-        MouseMove,
-        MouseWheel
-    };
-
-    eInputType                 type;
-    std::variant<eKey, eMouse> input;   // eKey or eMouse
-};
-
 // input 은 WM 가 아닌 인풋 후킹으로 갱신합니다.
 class Input
 {
 public:
     static void Initialize();
     static void Shutdown();
+
+    static void Update();
 
     static NODISCARD bool IsKeyUp(eKey _key);
     static NODISCARD bool IsKeyDown(eKey _key);
@@ -35,8 +21,6 @@ public:
 
     static void SetInputInterceptState(eKey _key, bool _block);
     static void SetGlobalInputInterceptEnabled(bool _enable);
-
-    static void OnInputEvent(const InputEvent& _msg);
 
 private:
     // 아래 함수는 다른 스레드에서 실행됨
