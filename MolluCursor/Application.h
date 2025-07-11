@@ -40,7 +40,7 @@ public:
     static NODISCARD Application& GetInstance();
 
     // public config
-    constexpr static const char* const k_version = "0.1.0";
+    constexpr static const char* const k_version = "0.1.1";
 
 private:
     Application();
