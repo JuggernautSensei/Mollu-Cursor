@@ -5,5 +5,5 @@ bin/
 .vs/
 build/*.json
 build/*.ini
+build/*.zip
 videos/
-README.md
