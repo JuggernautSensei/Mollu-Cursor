@@ -48,11 +48,11 @@ https://github.com/user-attachments/assets/3a5e7ce3-d7ef-4c15-8030-d6ffb6e6f3a0
 </details>
 
 ## 개발 환경 및 요구사항
-개발 언어: C++ 20
-컴파일러: Microsoft Visual C++ (MSVC) 
-백엔드: Windows API, DirectX 11
+* 개발 언어: C++ 20
+* 컴파일러: Microsoft Visual C++ (MSVC) 
+* 백엔드: Windows API, DirectX 11
 
-Windows 10, 11 (x86, x64) 에서 작동 확인
+Windows 10, 11 (x86, x64) 에서 작동 확인  
 Windows가 아닌 운영체제에서는 실행 불가능
 
 ## 사용법
