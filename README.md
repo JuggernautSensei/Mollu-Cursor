@@ -16,6 +16,8 @@ https://github.com/user-attachments/assets/3a5e7ce3-d7ef-4c15-8030-d6ffb6e6f3a0
 * 매크로 저장 및 불러오기
 * 매크로 시각화 및 오버레이
 
+초기 버전이기 때문에 버그가 발생할 수 있으니 발생즉시 Issues 를 만들어주시길 바랍니다.
+
 ## 다운로드
 [MolluCursor.zip](https://github.com/user-attachments/files/21177376/MolluCursor.zip)
 
