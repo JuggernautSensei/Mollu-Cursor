@@ -77,11 +77,12 @@ EditHotKeyPopup::EditHotKeyPopup(eKey& _keyRef)
 
 void EditHotKeyPopup::operator()()
 {
-    // detect pressed button
-    for (unsigned int i = 0; i < k_eKeyCount; ++i)
+    // 버튼 감지
+    for (int i = 0; i < k_eKeyCount; ++i)
     {
         eKey key = static_cast<eKey>(i);
 
+        // 유효한 enum이 아니라면 스킵
         if (!IsValidEnum(key))
             continue;
 
@@ -94,12 +95,12 @@ void EditHotKeyPopup::operator()()
         }
     }
 
-    // rendering
+    // 단축키 프리뷰
     ImGui::Text("단축키로 설정할 키를 누르세요.");
     ImGui::InputText("##EditHotKeyPopup", m_buf.data(), m_buf.capacity(), ImGuiInputTextFlags_ReadOnly);
 
+    // 버튼 렌더링
     ImVec2 buttonSize = CalcPrettyButtonSize(3);
-
     if (ImGui::Button("확인", buttonSize))
     {
         *m_pEditKey = m_tmpKey;
@@ -148,20 +149,24 @@ void EditMacroPositionPopup::operator()() const
     ImGui::BulletText("현재 매크로 상대적인 좌표 (x, y)");
     ImGui::TreePush("macro position");
 
-    // get global cursor pos
+    // 전역 마우스 좌표
     POINT point;
     ::GetCursorPos(&point);
 
+
+    // 전역 -> 상대
     Vec2 nativePos;
     nativePos.x = static_cast<float>(point.x - static_cast<LONG>(m_programData.windowPosX));
     nativePos.y = static_cast<float>(point.y - static_cast<LONG>(m_programData.windowPosY));
 
+    // 상대 -> 정규화
     Vec2 relativePos;
     ASSERT(m_programData.windowWidth > 0, "width is zero");
     ASSERT(m_programData.windowHeight > 0, "height is zero");
     relativePos.x = nativePos.x / static_cast<float>(m_programData.windowWidth);
     relativePos.y = nativePos.y / static_cast<float>(m_programData.windowHeight);
 
+    // 좌표 프리뷰
     ImGui::DragFloat2("##macro position", reinterpret_cast<float*>(&relativePos), 1.f, 0.f, 0.f, "%.3f", ImGuiSliderFlags_ReadOnly);
     ImGui::TreePop();
 

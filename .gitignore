@@ -6,3 +6,4 @@ bin/
 build/*.json
 build/*.ini
 videos/
+README.md

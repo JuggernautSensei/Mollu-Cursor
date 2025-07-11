@@ -66,7 +66,7 @@ private:
     void OnResize_(int _width, int _height);
     void OnMove_(int _x, int _y);
 
-    // window
+    // gui
     void ShowModalWindow_();
     void ShowWorkSpaceWindow_();
     void ShowMacroVisualizeWindow_() const;
