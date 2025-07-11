@@ -40,6 +40,12 @@ https://github.com/user-attachments/assets/941a226c-e30f-40bd-b7dd-450187661d5c
 
 https://github.com/user-attachments/assets/e0df0a44-5182-4230-b32b-dfa103b962cd
 
+### 다른 프로그램에 사용하는 방법
+
+https://github.com/user-attachments/assets/1e2c2eb6-46ec-4d1f-86a1-b9f3b2efc58c
+
+'감지 풀기' 버튼을 클릭한 후 감지하고 싶은 프로세스의 이름을 적으면 됩니다.
+
 ## 버그 제보
 발생할 수 있는 버그는 다음과 같습니다.
 
