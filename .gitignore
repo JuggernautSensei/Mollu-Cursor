@@ -4,4 +4,5 @@ inter/
 bin/
 .vs/
 build/*.json
-build/ini.json
+build/*.ini
+videos/
