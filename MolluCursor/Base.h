@@ -44,7 +44,7 @@ void CrashImpl(std::string_view _msg);
 
 #define NODISCARD [[nodiscard]]
 
-enum class eKey : unsigned int
+enum class eKey
 {
     None              = 0x00,
     Cancel            = 0x03,
@@ -191,8 +191,8 @@ enum class eKey : unsigned int
 
     Count
 };
-constexpr unsigned int k_eKeyCount = static_cast<int>(eKey::Count);
-std::string_view       ToString(eKey e);
+constexpr int    k_eKeyCount = static_cast<int>(eKey::Count);
+std::string_view ToString(eKey e);
 
 enum class eMouse : int
 {
@@ -234,6 +234,11 @@ struct Vec2
     constexpr Vec2(const float _x, const float _y)
         : x(_x)
         , y(_y)
+    {
+    }
+
+    constexpr Vec2(const int _x, const int _y)
+        : Vec2(static_cast<float>(_x), static_cast<float>(_y))
     {
     }
 

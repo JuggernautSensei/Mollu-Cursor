@@ -241,8 +241,8 @@ void ReadMePopup::operator()() const
 
             ImGui::NewLine();
             ImGui::BulletText("클릭, 연타, 홀드, 이동 등 다양한 매크로 액션");
-            ImGui::BulletText("게임 자동 감지, 더하여 블루아카이브 뿐만 아니라 다른 프로그램에서도 해당 프로그램 사용 가능");
-            ImGui::BulletText("게임의 위치, 크기에 상관없이 일관적인 좌표 제공 (단, 종횡비가 달라질 시 좌표는 달라질 수 있음)");
+            ImGui::BulletText("프로그램 자동 감지, 더하여 블루아카이브 뿐만 아니라 다른 프로그램에서도 해당 프로그램 사용 가능");
+            ImGui::BulletText("프로그램의 위치, 크기에 상관없이 일관적인 좌표 제공 (단, 종횡비가 달라질 시 좌표는 달라질 수 있음)");
             ImGui::BulletText("매크로 파일 저장/불러오기");
             ImGui::BulletText("매크로 시각화 및 오버레이");
 

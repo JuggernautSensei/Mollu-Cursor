@@ -1,14 +1,22 @@
 ﻿#pragma once
 
 // for performance measurement
+
+#define MACRO_CONCAT_IMPL(a, b) a##b
+#define MACRO_CONCAT(a, b)      MACRO_CONCAT_IMPL(a, b)
+
 #ifdef _DEBUG
-#    define DEBUG_SCOPED_STOP_WATCH(...) ScopedStopWatch(std::format(__VA_ARGS__))
+#    define DEBUG_SCOPED_STOP_WATCH(...) ScopedStopWatch MACRO_CONCAT(stopWatch, __LINE__)(std::format(__VA_ARGS__))
 #else
 #    define DEBUG_SCOPED_STOP_WATCH(...) (void)(0)
 #endif
 
 // imgui utils
-constexpr ImVec2 operator+(const ImVec2& a, const ImVec2& b) { return ImVec2 { a.x + b.x, a.y + b.y }; }
+constexpr ImVec2
+operator+(const ImVec2& a, const ImVec2& b)
+{
+    return ImVec2 { a.x + b.x, a.y + b.y };
+}
 constexpr ImVec2 operator-(const ImVec2& a, const ImVec2& b) { return ImVec2 { a.x - b.x, a.y - b.y }; }
 constexpr ImVec2 operator*(const ImVec2& a, const ImVec2& b) { return ImVec2 { a.x * b.x, a.y * b.y }; }
 constexpr ImVec2 operator*(const ImVec2& a, const float b) { return ImVec2 { a.x * b, a.y * b }; }
@@ -50,6 +58,7 @@ NODISCARD bool IsValidEnum(const T _value)
     std::string_view enumName = ToString(_value);
     return !enumName.empty();
 }
+
 template<typename T>
 NODISCARD T GetValidEnum(const T _value, const T _valueIfInvalid)
 {

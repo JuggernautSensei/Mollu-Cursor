@@ -3,7 +3,6 @@
 #include "CommandQueue.h"
 #include "Macro.h"
 #include "ProgramDetector.h"
-#include "pch.h"
 
 class Application
 {
@@ -11,6 +10,19 @@ class Application
     {
         Macro macro;
         float timeCounterSec = 0.f;   // for repeat action
+    };
+
+    struct ApplicationConfigEx
+    {
+        ApplicationConfig config;
+        float             prevFontScale = 0.f;     // dirty flags
+        bool              bPrevTopMost  = false;   // dirty flags
+    };
+
+    struct ProgramDataEx
+    {
+        ProgramData data;
+        std::string programName;
     };
 
 public:
@@ -28,7 +40,7 @@ public:
     static NODISCARD Application& GetInstance();
 
     // public config
-    constexpr static const char* const k_version = "0.1.1";
+    constexpr static const char* const k_version = "0.1.0";
 
 private:
     Application();
@@ -40,8 +52,7 @@ private:
 
     // window
     static LRESULT CALLBACK WndProc_(HWND, UINT, WPARAM, LPARAM);
-
-    void SetWindowProperties_(int _x, int _y, int _width, int _height, bool _bTopMost) const;
+    void                    SetWindowProperties_(int _x, int _y, int _width, int _height, bool _bTopMost) const;
 
     // macro
     void UpdateMacros_();
@@ -64,8 +75,8 @@ private:
     Json           SerializeMacroStack_();
     NODISCARD bool DeserializeMacroStack_(const Json& _json);
 
-    void SaveMacroStackByFileDialog_();   // using file dialog
-    void LoadMacroStackByFileDialog_();   // using file dialog
+    void SaveMacroStack_();   // using file dialog
+    void LoadMacroStack_();   // using file dialog
 
     // utilities
     NODISCARD std::string GetSystemErrorString_(HRESULT _hr) const;
@@ -80,8 +91,7 @@ private:
     bool m_bInitialized = false;
 
     // config
-    ApplicationConfig m_config     = {};
-    ApplicationConfig m_prevConfig = {};   // for dirty check
+    ApplicationConfigEx m_config = {};
 
     // window
     HINSTANCE m_hInst = nullptr;
@@ -99,11 +109,6 @@ private:
     ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;
 
     // program context
-    struct ProgramDataEx
-    {
-        ProgramData data;
-        std::string programName;
-    };
     ProgramDetector m_programDetector = {};
     ProgramDataEx   m_programData     = {};
 
@@ -152,6 +157,10 @@ private:
     constexpr static const char* const k_boldFontFileName       = "NanumSquareRoundEB.ttf";
     constexpr static float             k_defaultFontSize        = 18.f;
     constexpr static float             k_macroVisualizeFontSize = 20.f;
+
+    // visualize
+    constexpr static float k_macroVisualizeRadius    = 50.f;
+    constexpr static float k_macroAimVisualizeRadius = 3.f;
 
     // file dialog
     constexpr static wchar_t k_fileDialogFilter[] = L"macro file (*.json)\0*.json\0all files (*.*)\0*.*\0";

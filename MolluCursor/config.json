@@ -1,6 +1,6 @@
 {
     "font_scale": 1.0,
-    "global_macro_enabled": true,
+    "global_macro_enabled": false,
     "global_macro_hotkey": 55,
     "macro_aim_visualize_color": {
         "w": 1.0,
@@ -8,7 +8,7 @@
         "y": 0.0,
         "z": 0.0
     },
-    "macro_aim_visualize_enabled": true,
+    "macro_aim_visualize_enabled": false,
     "macro_aim_visualize_hotkey": 48,
     "macro_visualize_color": {
         "w": 0.699999988079071,
@@ -16,7 +16,7 @@
         "y": 0.0,
         "z": 0.0
     },
-    "macro_visualize_enabled": false,
+    "macro_visualize_enabled": true,
     "macro_visualize_hotkey": 57,
     "macro_visualize_scale": 1.0,
     "top_most": true,
