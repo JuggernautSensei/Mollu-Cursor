@@ -24,19 +24,26 @@ https://github.com/user-attachments/assets/3a5e7ce3-d7ef-4c15-8030-d6ffb6e6f3a0
 * MolluCursor_x64.exe: x64 용 실행파일입니다. 일반적으로 이걸 실행시키면 됩니다.
 * MolluCursor_Win32.exe: x86 용 실행파일입니다.
 
-### 다음과 같은 경고창이 뜰 경우
+<details>
+<summary> Windows PC 보호 경고 메시지가 뜰 경우 </summary>
+
 <img width="776" height="735" alt="image" src="https://github.com/user-attachments/assets/def2f333-b82e-4b06-ad9e-13b141a0be6a" />
 
-<summary>더보기</summary>
 
 해당 경고가 뜨는 이유는 인증서가 없기 때문입니다.
 무료 프로그램에다가 소스코드도 다 공개되어있는데 돈주고 인증서까지 적용시킬 여유가 없습니다.
+
 
 <img width="778" height="731" alt="image" src="https://github.com/user-attachments/assets/e1cb4478-3494-46ce-a1ce-04e0a142fe1a" />
 
 <img width="783" height="730" alt="image" src="https://github.com/user-attachments/assets/07dba985-0150-4615-805c-f3472ea05ba3" />
 
+
 위와 같은 방법으로 프로그램을 실행시킬 수 있습니다.
+코드를 읽으실 수 있으면 아시겠지만 특별히 악성 코드나 해킹, 후킹 등의 코드는 존재하지 않습니다.  
+배포용 exe 파일에도 장난쳐놓지 않았구요.
+
+영 불안하시면 소스파일 직접 빌드해서 사용하시면 되겠습니다.
 
 </details>
 
