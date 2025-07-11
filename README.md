@@ -20,7 +20,9 @@ https://github.com/user-attachments/assets/3a5e7ce3-d7ef-4c15-8030-d6ffb6e6f3a0
 버그 제포 방법과 양식은 최하단 목차를 이용해주세요!
 
 ## 다운로드
-[MolluCursor.zip](https://github.com/user-attachments/files/21177376/MolluCursor.zip)
+<img width="1365" height="707" alt="image" src="https://github.com/user-attachments/assets/2fa01c37-ed46-47ef-a68f-14567df25d26" />
+
+
 
 ### 구성파일
 * fonts: 프로그램에 사용되는 폰트 파일입니다. 해당 파일이 손상되면 실행되지 않습니다.
