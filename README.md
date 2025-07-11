@@ -1,4 +1,4 @@
-Hello, Mollu Cursor!
+# Hello, Mollu Cursor!
 
 https://github.com/user-attachments/assets/3a5e7ce3-d7ef-4c15-8030-d6ffb6e6f3a0
 
@@ -15,10 +15,10 @@ https://github.com/user-attachments/assets/3a5e7ce3-d7ef-4c15-8030-d6ffb6e6f3a0
 * 매크로 저장 및 불러오기
 * 매크로 시각화 및 오버레이
 
-### 다운로드
+## 다운로드
 [MolluCursor.zip](https://github.com/user-attachments/files/21177031/MolluCursor.zip)
 
-### 개발 환경 및 요구사항
+## 개발 환경 및 요구사항
 개발 언어: C++ 20
 컴파일러: Microsoft Visual C++ (MSVC) 
 백엔드: Windows API, DirectX 11
@@ -26,20 +26,20 @@ https://github.com/user-attachments/assets/3a5e7ce3-d7ef-4c15-8030-d6ffb6e6f3a0
 Windows 10, 11 (x86, x64) 에서 작동 확인
 Windows가 아닌 운영체제에서는 실행 불가능
 
-### 사용법
+## 사용법
 
-#### 간단한 사용 영상
+### 간단한 사용 영상
 https://github.com/user-attachments/assets/3b8819a2-7852-4ec6-bb2f-31dfe609308d
 
-#### 다양한 마우스 입력
+### 다양한 마우스 입력
 
 https://github.com/user-attachments/assets/941a226c-e30f-40bd-b7dd-450187661d5c
 
-#### 매크로 저장 및 불러오기
+### 매크로 저장 및 불러오기
 
 https://github.com/user-attachments/assets/e0df0a44-5182-4230-b32b-dfa103b962cd
 
-### 버그 제보
+## 버그 제보
 발생할 수 있는 버그는 다음과 같습니다.
 
 1. 경고 창이 뜨며 오류 메시지가 발생함.
