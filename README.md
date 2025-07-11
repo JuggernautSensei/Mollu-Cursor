@@ -30,20 +30,20 @@ https://github.com/user-attachments/assets/3a5e7ce3-d7ef-4c15-8030-d6ffb6e6f3a0
 <img width="776" height="735" alt="image" src="https://github.com/user-attachments/assets/def2f333-b82e-4b06-ad9e-13b141a0be6a" />
 
 
-해당 경고가 뜨는 이유는 인증서가 없기 때문입니다.
-무료 프로그램에다가 소스코드도 다 공개되어있는데 돈주고 인증서까지 적용시킬 여유가 없습니다.
-
+해당 경고는 인증서가 없기 때문에 발생합니다.  
+이 프로그램은 무료로 배포되며 소스 코드도 모두 공개되어 있어, 유료 인증서를 구매해 적용할 여유가 없습니다.  
+이 점에 양해부탁드립니다.
 
 <img width="778" height="731" alt="image" src="https://github.com/user-attachments/assets/e1cb4478-3494-46ce-a1ce-04e0a142fe1a" />
 
 <img width="783" height="730" alt="image" src="https://github.com/user-attachments/assets/07dba985-0150-4615-805c-f3472ea05ba3" />
 
 
-위와 같은 방법으로 프로그램을 실행시킬 수 있습니다.
+위와 같은 방법으로 프로그램을 실행시킬 수 있습니다.  
 코드를 읽으실 수 있으면 아시겠지만 특별히 악성 코드나 해킹, 후킹 등의 코드는 존재하지 않습니다.  
-배포용 exe 파일에도 장난쳐놓지 않았구요.
+배포용 exe 파일에도 장난쳐놓지 않았구요.  
 
-영 불안하시면 소스파일 직접 빌드해서 사용하시면 되겠습니다.
+영 불안하시면 소스파일 직접 빌드해서 사용하시면 되겠습니다.  
 
 </details>
 
@@ -83,4 +83,6 @@ https://github.com/user-attachments/assets/1e2c2eb6-46ec-4d1f-86a1-b9f3b2efc58c
 #### 프로그램이 갑자기 꺼짐  
 언제 어떻게 무엇을 하다가 버그가 발생하였는지, 버그를 재현할 수 있는 상황을 알려주시면 버그를 수정하는데 도움이 됩니다.
 
+## 라이센스
+MIT License
 
